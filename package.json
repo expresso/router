@@ -1,5 +1,5 @@
 {
-  "name": "expresso-framework",
+  "name": "@expresso/router",
   "version": "1.0.0",
   "description": "@expresso framework library",
   "scripts": {
