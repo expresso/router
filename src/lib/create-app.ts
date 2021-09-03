@@ -24,11 +24,33 @@ export type OpenApiInfo = {
   externalDocs?: ExternalDocumentationObject
 }
 
-export const createApp = (
-  openApiInfo: OpenApiInfo,
-  routing: Routing,
-  app: Express = express()
-) => {
+export type CreateAppParams = {
+  openApiInfo: OpenApiInfo
+  routing: Routing
+  app?: Express
+  docsEndpoint?: string
+  swaggerUiOptions?: any
+}
+
+/**
+ * Creates an express app with the given routing and openapi info.
+ * @param config Info and options
+ * @param config.openApiInfo OpenAPI specification params
+ * @param config.routing Route definitions
+ * @param config.app Optional express app to use
+ * @param config.docsEndpoint Optional endpoint for swagger-ui
+ * @param config.swaggerUiOptions Optional options for swagger-ui
+ * @returns Express app
+ */
+export const createApp = (config: CreateAppParams) => {
+  const {
+    openApiInfo,
+    routing,
+    app = express(),
+    docsEndpoint = '/docs',
+    swaggerUiOptions = {}
+  } = config
+
   const wrappedRoutes = Object.fromEntries(
     Object.entries(routing).map(([path, route]) => [
       path,
@@ -60,8 +82,8 @@ export const createApp = (
     paths
   }).getSpec()
 
-  app.use('/docs', swaggerUi.serve)
-  app.get('/docs', swaggerUi.setup(spec))
+  app.use(docsEndpoint, swaggerUi.serve)
+  app.get(docsEndpoint, swaggerUi.setup(spec, swaggerUiOptions))
 
   // User Routes
   Object.entries(wrappedRoutes).forEach(([path, methods]) => {

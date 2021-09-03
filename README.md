@@ -90,6 +90,10 @@ In order to be able to generate an OpenAPI spec, we need more information about 
 
 The result is an express app which you can use just like any other express app, including adding new routes, middlewares, error middlewares or starting a server with `app.listen()`.
 
+You can specify your own app by passing a custom `app` property to the `createApp` options object. This is useful if you want to use your own express middlewares, or if you want to use a different version of express.
+
+The `GET /docs` endpoint can be customized by passing a custom `docsEndpoint` property to `createApp`. You can also use the `swaggerUiOptions` property to customize the swagger UI.
+
 ```typescript
 import { routing } from './routing.ts'
 import { createApp, OpenApiInfo } from '../src'
@@ -103,7 +107,7 @@ const openApiInfo: OpenApiInfo = {
   servers: [{ url: 'http://localhost:3000' }]
 }
 
-const app = createApp(openApiInfo, routing)
+const app = createApp({ openApiInfo, routing })
 
 app.listen(3000, () => {
   console.log('Listening on 3000')

@@ -52,7 +52,8 @@ const createUser = createEndpoint({
 
 const login = createEndpoint({
   summary: 'Get a new access token',
-  description: 'Validates user and password and returns a new token if everything is correct',
+  description:
+    'Validates user and password and returns a new token if everything is correct',
   tags: ['Usuários'],
   input: {
     body: z.object({
@@ -102,7 +103,10 @@ const openApiInfo: OpenApiInfo = {
     title: 'Test API',
     version: '1.0.0',
     contact: { email: 'roz@rjmunhoz.me' },
-    license: { name: 'GPL 3.0', url: 'https://www.gnu.org/licenses/gpl-3.0.txt' }
+    license: {
+      name: 'GPL 3.0',
+      url: 'https://www.gnu.org/licenses/gpl-3.0.txt'
+    }
   },
   openapi: '3.0.1',
   servers: [
@@ -118,5 +122,5 @@ const openApiInfo: OpenApiInfo = {
   ]
 }
 
-const appFactory = expresso((app) => createApp(openApiInfo, routing, app))
+const appFactory = expresso((app) => createApp({ openApiInfo, routing, app }))
 server.start(appFactory, { name: 'Test API' })
