@@ -54,5 +54,10 @@
     "openapi3-ts": "^2.0.1",
     "swagger-ui-express": "^4.1.6",
     "zod": "^3.8.1"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ]
   }
 }
