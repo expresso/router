@@ -2,7 +2,14 @@
   "name": "@expresso/router",
   "version": "1.0.0",
   "description": "@expresso framework library",
-  "keywords": ["swagger", "zod", "typescript", "openapi", "express", "expresso"],
+  "keywords": [
+    "swagger",
+    "zod",
+    "typescript",
+    "openapi",
+    "express",
+    "expresso"
+  ],
   "scripts": {
     "test": "mocha -b -r ts-node/register test/**/*.ts",
     "build": "tsc",
@@ -10,7 +17,8 @@
     "build:clean": "npm run build && npm run build",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "npm run lint -- --fix",
-    "dev": "tsnd usage"
+    "dev": "tsnd usage",
+    "prepack": "npm run build:clean"
   },
   "repository": "github:expresso/router",
   "author": "Roz <roz@rjmunhoz.me>",
@@ -65,5 +73,8 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
