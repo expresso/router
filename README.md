@@ -1,16 +1,16 @@
-Expresso Framework
----
+# Expresso Framework
 
 > Self documented, self validated, typescript-first API framework written on top of Express
 
-## Features
-- Automatic input validation with [Zod](https://www.npmjs.com/package/zod)
-- Type safe input and output
-- Auto generated documentation
+## Features
 
-## Usage
+- Automatic input validation with [Zod](https://www.npmjs.com/package/zod)
+- Type safe input and output
+- Auto generated documentation
 
-### Defining an endpoint
+## Usage
+
+### Defining an endpoint
 
 Expresso router's main function is the `createEndpoint` function. This function is responsible for building the OpenAPI metadata that will be later used to generate the swagger ui documentation.
 
@@ -67,7 +67,7 @@ export const createUser = createEndpoint({
 })
 ```
 
-### Defining routes
+### Defining routes
 
 The routing object has the paths at its main level, with each path having properties for the HTTP methods they handle. The `Routing` type defines a routing object:
 
@@ -82,7 +82,7 @@ export const routing: Routing = {
 }
 ```
 
-### Putting everything together
+### Putting everything together
 
 Now that you have your endpoints and routes, it's time to create the app. The `createApp` function runs an `express` server equipped with the routes and endpoints, plus a `GET /docs` endpoint which renders the swagger UI documentation.
 
@@ -114,7 +114,7 @@ app.listen(3000, () => {
 })
 ```
 
-### /docs endpoint
+### /docs endpoint
 
 This endpoint is used to render the swagger UI documentation. It is automatically generated by the `createApp` function.
 
