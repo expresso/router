@@ -27,44 +27,45 @@ Besides the `input`, `output` and `handlers` properties, you can also define a `
 You can see more about the OpenAPI specification at [https://swagger.io/](https://swagger.io/).
 
 ```typescript
-import crypto from 'crypto'
-import { z } from 'zod'
-import { createEndpoint } from '@expresso/router'
+import crypto from 'crypto';
+import { z } from 'zod';
+import { createEndpoint } from '@expresso/router';
 
 export const createUser = createEndpoint({
- summary: 'Create a new user',
- description: 'If a user with that email already exists, the 409 response will be used. If that happens, you can resend this request with a new email to try again',
- tags: ['Users'],
- input: {
- body: z.object({
- name: z.string().min(1),
- email: z.string().email().min(1),
- password: z.string().min(16)
- })
- },
- output: {
- 201: z.object({
- id: z.string().min(1),
- name: z.string().min(1),
- email: z.string().email().min(1)
- }),
- 409: z.object({
- status: z.literal(409),
- message: z.string().min(1)
- })
- },
- handlers: (req, res) => {
- const { name, email } = req.body
+  summary: 'Create a new user',
+  description:
+    'If a user with that email already exists, the 409 response will be used. If that happens, you can resend this request with a new email to try again',
+  tags: ['Users'],
+  input: {
+    body: z.object({
+      name: z.string().min(1),
+      email: z.string().email().min(1),
+      password: z.string().min(16),
+    }),
+  },
+  output: {
+    201: z.object({
+      id: z.string().min(1),
+      name: z.string().min(1),
+      email: z.string().email().min(1),
+    }),
+    409: z.object({
+      status: z.literal(409),
+      message: z.string().min(1),
+    }),
+  },
+  handlers: (req, res) => {
+    const { name, email } = req.body;
 
- const id = crypto.randomBytes(16).toString('hex')
+    const id = crypto.randomBytes(16).toString('hex');
 
- res.status(201).json({
- id,
- name,
- email
- })
- }
-})
+    res.status(201).json({
+      id,
+      name,
+      email,
+    });
+  },
+});
 ```
 
 ### Defining routes
@@ -72,14 +73,14 @@ export const createUser = createEndpoint({
 The routing object has the paths at its main level, with each path having properties for the HTTP methods they handle. The `Routing` type defines a routing object:
 
 ```typescript
-import { createUser } from './endpoints/create-user.ts'
-import { Routing } from '@expresso/router'
+import { createUser } from './endpoints/create-user.ts';
+import { Routing } from '@expresso/router';
 
 export const routing: Routing = {
- '/users': {
- post: createUser
- }
-}
+  '/users': {
+    post: createUser,
+  },
+};
 ```
 
 ### Putting everything together
@@ -95,23 +96,23 @@ You can specify your own app by passing a custom `app` property to the `createAp
 The `GET /docs` endpoint can be customized by passing a custom `docsEndpoint` property to `createApp`. You can also use the `swaggerUiOptions` property to customize the swagger UI.
 
 ```typescript
-import { routing } from './routing.ts'
-import { createApp, OpenApiInfo } from '../src'
+import { routing } from './routing.ts';
+import { createApp, OpenApiInfo } from '../src';
 
 const openApiInfo: OpenApiInfo = {
- info: {
- title: 'Test API',
- version: '1.0.0'
- },
- openapi: '3.0.1',
- servers: [{ url: 'http://localhost:3000' }]
-}
+  info: {
+    title: 'Test API',
+    version: '1.0.0',
+  },
+  openapi: '3.0.1',
+  servers: [{ url: 'http://localhost:3000' }],
+};
 
-const app = createApp({ openApiInfo, routing })
+const app = createApp({ openApiInfo, routing });
 
 app.listen(3000, () => {
- console.log('Listening on 3000')
-})
+  console.log('Listening on 3000');
+});
 ```
 
 ### /docs endpoint
