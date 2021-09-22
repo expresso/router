@@ -1,3 +1,5 @@
+## [2.0.5](https://github.com/expresso/router/compare/v2.0.4...v2.0.5) (2021-09-22)
+
 ## [2.0.4](https://github.com/expresso/router/compare/v2.0.3...v2.0.4) (2021-09-22)
 
 ## [2.0.3](https://github.com/expresso/router/compare/v2.0.2...v2.0.3) (2021-09-07)
