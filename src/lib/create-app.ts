@@ -1,9 +1,12 @@
 import express, { Express } from 'express'
+import yaml from 'yaml'
+import fs from 'fs'
 import {
   ComponentsObject,
   ExternalDocumentationObject,
   InfoObject,
   OpenApiBuilder,
+  OpenAPIObject,
   SecurityRequirementObject,
   ServerObject,
   TagObject
@@ -24,12 +27,57 @@ export type OpenApiInfo = {
   externalDocs?: ExternalDocumentationObject
 }
 
+type UIOptions = {
+  endpoint: string
+  swaggerUiExpressOptions?: Record<string, any>
+}
+
+type FSOptions = {
+  path: string
+  format: 'json' | 'yaml'
+}
+
 export type CreateAppParams = {
   openApiInfo: OpenApiInfo
   routing: Routing
   app?: Express
-  docsEndpoint?: string
-  swaggerUiOptions?: any
+  documentation?:
+    | Partial<{
+        ui: UIOptions
+        yaml: Boolean
+        json: Boolean
+        fs: FSOptions
+      }>
+    | false
+}
+
+function installUi(app: Express, spec: OpenAPIObject, options: UIOptions) {
+  app.use(options.endpoint, swaggerUi.serve)
+  app.get(
+    options.endpoint,
+    swaggerUi.setup(spec, options.swaggerUiExpressOptions)
+  )
+}
+
+function installSpec(
+  app: Express,
+  spec: OpenAPIObject,
+  format: 'json' | 'yaml'
+) {
+  app.get(`/swagger.${format}`, (_, res) => {
+    return format === 'json'
+      ? res.status(200).json(spec)
+      : res.status(200).send(yaml.stringify(spec)).end()
+  })
+}
+
+function saveSpec(spec: OpenAPIObject, options: FSOptions) {
+  const content =
+    options.format === 'json'
+      ? JSON.stringify(spec, null, 4)
+      : yaml.stringify(spec)
+
+  fs.writeFileSync(options.path, content)
 }
 
 /**
@@ -39,17 +87,11 @@ export type CreateAppParams = {
  * @param config.routing Route definitions
  * @param config.app Optional express app to use
  * @param config.docsEndpoint Optional endpoint for swagger-ui
- * @param config.swaggerUiOptions Optional options for swagger-ui
+ * @param config.swaggerUiExpressOptions Optional options for swagger-ui
  * @returns Express app
  */
 export const createApp = (config: CreateAppParams) => {
-  const {
-    openApiInfo,
-    routing,
-    app = express(),
-    docsEndpoint = '/docs',
-    swaggerUiOptions = {}
-  } = config
+  const { openApiInfo, routing, app = express(), documentation } = config
 
   const wrappedRoutes = Object.fromEntries(
     Object.entries(routing).map(([path, route]) => [
@@ -82,8 +124,21 @@ export const createApp = (config: CreateAppParams) => {
     paths
   }).getSpec()
 
-  app.use(docsEndpoint, swaggerUi.serve)
-  app.get(docsEndpoint, swaggerUi.setup(spec, swaggerUiOptions))
+  if (documentation && documentation?.ui) {
+    installUi(app, spec, documentation.ui)
+  }
+
+  if (documentation && documentation.json) {
+    installSpec(app, spec, 'json')
+  }
+
+  if (documentation && documentation.yaml) {
+    installSpec(app, spec, 'yaml')
+  }
+
+  if (documentation && documentation.fs) {
+    saveSpec(spec, documentation.fs)
+  }
 
   // User Routes
   Object.entries(wrappedRoutes).forEach(([path, methods]) => {
