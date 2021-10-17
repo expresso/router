@@ -1,0 +1,153 @@
+info:
+  title: Test API
+  version: 1.0.0
+  contact:
+    email: roz@rjmunhoz.me
+  license:
+    name: GPL 3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.txt
+openapi: 3.0.1
+servers:
+  - url: "{protocol}://{host}:{port}"
+    description: Local server
+    variables:
+      host:
+        default: localhost
+      protocol:
+        enum:
+          - http
+          - https
+        default: http
+      port:
+        default: "3000"
+paths:
+  /users:
+    post:
+      description: If you call this and a user already exists, it will be shit
+      summary: Create a new user
+      tags:
+        - Usuários
+      responses:
+        "201":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    minLength: 1
+                  name:
+                    type: string
+                    minLength: 1
+                  email:
+                    type: string
+                    format: email
+                    minLength: 1
+                required:
+                  - id
+                  - name
+                  - email
+          headers:
+            x-content-range:
+              schema:
+                type: string
+              description: Describes a content range
+        "409":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    enum:
+                      - 409
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - status
+                  - message
+      parameters:
+        - name: authorization
+          in: header
+          schema:
+            type: string
+          description: Authorization token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                email:
+                  type: string
+                  format: email
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 16
+              required:
+                - name
+                - email
+                - password
+  /login:
+    post:
+      description: Validates user and password and returns a new token if everything
+        is correct
+      summary: Get a new access token
+      tags:
+        - Usuários
+      responses:
+        "200":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    minLength: 1
+                required:
+                  - token
+        "401":
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                    enum:
+                      - 401
+                  message:
+                    type: string
+                    minLength: 1
+                required:
+                  - status
+                  - message
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  minLength: 1
+                password:
+                  type: string
+                  minLength: 16
+              required:
+                - email
+                - password

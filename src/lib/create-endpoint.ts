@@ -1,9 +1,15 @@
-import * as z from 'zod'
+import { generateSchema } from '@anatine/zod-openapi'
 import * as Express from 'express'
 import * as core from 'express-serve-static-core'
+import {
+  HeaderObject,
+  HeadersObject,
+  OperationObject,
+  ParameterLocation,
+  ResponseObject
+} from 'openapi3-ts'
+import * as z from 'zod'
 import { ZodObject, ZodSchema, ZodTypeAny } from 'zod'
-import { OperationObject } from 'openapi3-ts'
-import { generateSchema } from '@anatine/zod-openapi'
 
 const emptySchema = z.object({})
 
@@ -31,8 +37,10 @@ export type EndpointCreationParams<
     body?: ZodSchema<B>
     params?: ZodObject<{ [k in keyof P]: ZodTypeAny }, 'strip', ZodTypeAny, P>
     query?: ZodObject<{ [k in keyof Q]: ZodTypeAny }, 'strip', ZodTypeAny, Q>
+    headers?: HeadersObject
   }
   output: OUT
+  outputHeaders?: { [k in keyof OUT]?: HeadersObject }
   handlers: OneOrMore<Handler<B, P, Q, OUT>>
 }
 
@@ -44,6 +52,7 @@ export type Endpoint<B, P, Q, OUT extends Responses> = OperationObject & {
     query?: ZodObject<any>
   }
   output: OUT
+  outputHeaders?: { [k in keyof OUT]?: Record<string, HeaderObject> }
 }
 
 export const createEndpoint = <
@@ -56,7 +65,12 @@ export const createEndpoint = <
 ): Endpoint<B, P, Q, OUT> => {
   const {
     description,
-    input: { body = emptySchema, params = emptySchema, query = emptySchema },
+    input: {
+      body = emptySchema,
+      params = emptySchema,
+      query = emptySchema,
+      headers = {}
+    },
     output,
     handlers,
     ...extraParams
@@ -71,13 +85,28 @@ export const createEndpoint = <
           throw new Error(`Invalid status code: ${status}`)
         }
 
-        return [
-          status,
-          {
-            description: '',
-            content: { 'application/json': { schema: generateSchema(schema) } }
+        const response: ResponseObject = {
+          description: '',
+          content: { 'application/json': { schema: generateSchema(schema) } }
+        }
+
+        if (
+          creationParams.outputHeaders &&
+          creationParams.outputHeaders[parseInt(status)]
+        ) {
+          const responseHeaders = creationParams.outputHeaders[parseInt(status)]
+
+          if (responseHeaders) {
+            response.headers = Object.fromEntries(
+              Object.entries(responseHeaders).map(([key, value]) => [
+                key,
+                { schema: { type: 'string' }, ...value }
+              ])
+            )
           }
-        ]
+        }
+
+        return [status, response]
       })
     ),
     parameters: [
@@ -91,6 +120,12 @@ export const createEndpoint = <
         name: key,
         in: 'query' as const,
         schema: generateSchema(value as ZodTypeAny)
+      })),
+      ...Object.entries(headers).map(([key, value]) => ({
+        name: key,
+        in: 'header' as ParameterLocation,
+        schema: { type: 'string' as const },
+        ...value
       }))
     ],
     requestBody: {

@@ -17,7 +17,12 @@ const createUser = createEndpoint({
       name: z.string().min(1),
       email: z.string().email().min(1),
       password: z.string().min(16)
-    })
+    }),
+    headers: {
+      authorization: {
+        description: 'Authorization token'
+      }
+    }
   },
   output: {
     201: z.object({
@@ -29,6 +34,13 @@ const createUser = createEndpoint({
       status: z.literal(409),
       message: z.string().min(1)
     })
+  },
+  outputHeaders: {
+    201: {
+      'x-content-range': {
+        description: 'Describes a content range'
+      }
+    }
   },
   handlers: (req, res) => {
     const { name, email, password } = req.body
@@ -116,11 +128,28 @@ const openApiInfo: OpenApiInfo = {
       variables: {
         host: { default: 'localhost' },
         protocol: { enum: ['http', 'https'], default: 'http' },
-        port: { default: 3000 }
+        port: { default: '3000' }
       }
     }
   ]
 }
 
-const appFactory = expresso((app) => createApp({ openApiInfo, routing, app }))
+const appFactory = expresso((app) =>
+  createApp({
+    openApiInfo,
+    routing,
+    app,
+    documentation: {
+      ui: {
+        endpoint: '/docs'
+      },
+      json: true,
+      yaml: true,
+      fs: {
+        path: './docs.yaml',
+        format: 'yaml'
+      }
+    }
+  })
+)
 server.start(appFactory, { name: 'Test API' })
