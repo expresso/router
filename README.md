@@ -92,7 +92,16 @@ The result is an express app which you can use just like any other�
 
 You can specify your own app by passing a custom `app` property to the `createApp` options object. This is useful if you want to use your own express middlewares, or if you want to use a different version of express.
 
-The `GET /docs` endpoint can be customized by passing a custom `docsEndpoint` property to `createApp`. You can also use the `swaggerUiOptions` property to customize the swagger UI.
+The documentation can be customized via the `documentation` property, which accepts four optional properties, each one describing one manner of exposing documentation:
+
+- `ui` (object): Generates the swagger UI documentation
+  - `endpoint` (string): Endpoint through which swaggerUI will be available
+  - `swaggerUiExpressOptions` (string): Options to be passed to swagguer-ui-express as-is
+- `yaml` (boolean): Serves a yaml document containing the OpenAPI specification for the API in the `GET /swagger.yaml` endpoint
+- `json` (boolean): Serves a json document containing the OpenAPI specification for the API in the `GET /swagger.json` endpoint
+- `fs` (object): Saves the specification as a file in the given path
+  - `path` (string): Path where the file should be saved (with file extension)
+  - `format` (`'json'` | `'yaml'`): Specifies the format of the generated document
 
 ```typescript
 import { routing } from './routing.ts'
@@ -107,17 +116,19 @@ const openApiInfo: OpenApiInfo = {
   servers: [{ url: 'http://localhost:3000' }]
 }
 
-const app = createApp({ openApiInfo, routing })
+const app = createApp({
+  openApiInfo,
+  routing,
+  documentation: {
+    json: true,
+    fs: {
+      path: './docs/swagger.json',
+      format: 'json'
+    }
+  }
+})
 
 app.listen(3000, () => {
   console.log('Listening on 3000')
 })
 ```
-
-### /docs endpoint
-
-This endpoint is used to render the swagger UI documentation. It is automatically generated by the `createApp` function.
-
-This is the documentation generated by the code in the [usage](/usage) folder:
-
-![example of swagger ui](docs/usage-swagger-docs.png)
