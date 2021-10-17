@@ -16,9 +16,11 @@ Expresso router's main function is the `createEndpoint` function. This function 
 
 When creating an endpoint, you need to describe its input, output and give it at least one handler.
 
-The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. The corresponding `req` properties will be validated and transformed using these schemas.
+The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
 
 The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a Zod schema describing the body of that response. The `res.json` typing will ensure that you fulfill at least one of the response bodies, but **will not** match the status code and body (this is a typing limitation and PRs are very welcome).
+
+The `outputHeaders` property allows you to specify headers that are sent with each response code specified in the `output` property. This property is an object containing a `<statusCode, <string, HeaderObject>>` map.
 
 The `handlers` property is a function or array of optionally async functions. Errors and async errors are automatically captured and fed to `next`, so the express error handling flow works as normal.
 
@@ -42,6 +44,12 @@ export const createUser = createEndpoint({
       email: z.string().email().min(1),
       password: z.string().min(16),
     }),
+    headers: {
+      authorization: {
+        description: 'Auth token',
+        example: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.ErO0fS1yKjr73zJmeYqazVauy8z4Xwuhebs9fXVr3u4'
+      }
+    }
   },
   output: {
     201: z.object({
@@ -53,6 +61,13 @@ export const createUser = createEndpoint({
       status: z.literal(409),
       message: z.string().min(1),
     }),
+  },
+  outputHeaders: {
+    201: {
+      location: {
+        description: 'URL of the user that was created'
+      }
+    }
   },
   handlers: (req, res) => {
     const { name, email } = req.body;

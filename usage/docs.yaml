@@ -19,7 +19,7 @@ servers:
           - https
         default: http
       port:
-        default: 3000
+        default: "3000"
 paths:
   /users:
     post:
@@ -49,6 +49,11 @@ paths:
                   - id
                   - name
                   - email
+          headers:
+            x-content-range:
+              schema:
+                type: string
+              description: Describes a content range
         "409":
           description: ""
           content:
@@ -66,7 +71,12 @@ paths:
                 required:
                   - status
                   - message
-      parameters: []
+      parameters:
+        - name: authorization
+          in: header
+          schema:
+            type: string
+          description: Authorization token
       requestBody:
         content:
           application/json:
