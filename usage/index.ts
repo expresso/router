@@ -122,5 +122,22 @@ const openApiInfo: OpenApiInfo = {
   ]
 }
 
-const appFactory = expresso((app) => createApp({ openApiInfo, routing, app }))
+const appFactory = expresso((app) =>
+  createApp({
+    openApiInfo,
+    routing,
+    app,
+    documentation: {
+      ui: {
+        endpoint: '/docs'
+      },
+      json: true,
+      yaml: true,
+      fs: {
+        path: './docs.yaml',
+        format: 'yaml'
+      }
+    }
+  })
+)
 server.start(appFactory, { name: 'Test API' })
