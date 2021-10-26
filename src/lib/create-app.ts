@@ -12,7 +12,7 @@ import {
   TagObject
 } from 'openapi3-ts'
 import { HttpMethod, Routing } from './create-api'
-import { wrapHandler } from './handler-wrapper'
+import { validate } from './validate'
 import swaggerUi from 'swagger-ui-express'
 import { errorHandler } from './error-handler'
 import { createApi } from '..'
@@ -102,13 +102,9 @@ export const createApp = (config: CreateAppParams) => {
             ? endpoint.handlers
             : [endpoint.handlers]
 
-          const wrappedHandlers = handlers.map((handler) =>
-            wrapHandler(endpoint.input, handler)
-          )
-
           const wrappedRouteDef = {
             ...endpoint,
-            handlers: wrappedHandlers
+            handlers: [validate(endpoint.input), ...handlers]
           }
 
           return [method, wrappedRouteDef]

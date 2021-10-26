@@ -18,6 +18,13 @@ const createUser = createEndpoint({
       email: z.string().email().min(1),
       password: z.string().min(16)
     }),
+    query: z.object({
+      testNumber: z
+        .string()
+        .refine((s) => !Number.isNaN(Number(s)))
+        .transform((n) => parseInt(n, 10))
+        .optional()
+    }),
     headers: {
       authorization: {
         description: 'Authorization token'
@@ -42,24 +49,29 @@ const createUser = createEndpoint({
       }
     }
   },
-  handlers: (req, res) => {
-    const { name, email, password } = req.body
+  handlers: [
+    (_req, _res, next) => {
+      next()
+    },
+    (req, res) => {
+      const { name, email, password } = req.body
 
-    const id = crypto.randomBytes(16).toString('hex')
+      const id = crypto.randomBytes(16).toString('hex')
 
-    USERS.push({
-      id,
-      name,
-      email,
-      password
-    })
+      USERS.push({
+        id,
+        name,
+        email,
+        password
+      })
 
-    res.status(201).json({
-      id,
-      name,
-      email
-    })
-  }
+      res.status(201).json({
+        id,
+        name,
+        email
+      })
+    }
+  ]
 })
 
 const login = createEndpoint({
