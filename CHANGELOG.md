@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/expresso/router/compare/v3.0.0...v3.0.1) (2021-10-26)
+
+
+### Bug Fixes
+
+* remove endpoint duplication ([5bc8234](https://github.com/expresso/router/commit/5bc82344d21ff06e04723293c0dae06d07932861))
+
 # [3.0.0](https://github.com/expresso/router/compare/v2.0.6...v3.0.0) (2021-10-17)
 
 
