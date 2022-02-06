@@ -1,3 +1,21 @@
+# [4.0.0](https://github.com/expresso/router/compare/v3.0.1...v4.0.0) (2022-02-06)
+
+
+### Features
+
+* add support for transforms ([2a3989a](https://github.com/expresso/router/commit/2a3989afd7e581525b15f8730e5e70cc65c768b0))
+* automatic error recovery ([bcb3ea3](https://github.com/expresso/router/commit/bcb3ea3c998d16ce13583da0fac5e26222e8a244))
+* cleaner error message ([b780945](https://github.com/expresso/router/commit/b7809458e220410b270766819013ac71435b50de))
+
+
+### BREAKING CHANGES
+
+* Remove `outputHeaders` from the `createEndpoint` params object. The `output`
+property now requires you to specify, for each status code, an object which must have a `body`
+property, containing the Zod schema for the body of the response for that status. Optionally, you
+can also specify a `headers` property to each status code containing the response headers for that
+status code
+
 ## [3.0.1](https://github.com/expresso/router/compare/v3.0.0...v3.0.1) (2021-10-26)
 
 
