@@ -1,5 +1,4 @@
 import express, { Express } from 'express'
-import yaml from 'yaml'
 import fs from 'fs'
 import {
   ComponentsObject,
@@ -11,11 +10,13 @@ import {
   ServerObject,
   TagObject
 } from 'openapi3-ts'
-import { HttpMethod, Routing } from './create-api'
-import { validate } from './validate'
 import swaggerUi from 'swagger-ui-express'
-import { errorHandler } from './error-handler'
+import yaml from 'yaml'
 import { createApi } from '..'
+import { HttpMethod, Routing } from './create-api'
+import { errorHandler } from './error-handler'
+import { rescue } from './rescue'
+import { validate } from './validate'
 
 export type OpenApiInfo = {
   openapi: string
@@ -102,9 +103,11 @@ export const createApp = (config: CreateAppParams) => {
             ? endpoint.handlers
             : [endpoint.handlers]
 
+          const rescuedHandlers = handlers.map(rescue)
+
           const wrappedRouteDef = {
             ...endpoint,
-            handlers: [validate(endpoint.input), ...handlers]
+            handlers: [validate(endpoint.input), ...rescuedHandlers]
           }
 
           return [method, wrappedRouteDef]
