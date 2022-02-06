@@ -23,8 +23,11 @@ export type Routing = {
  * @param param0 Method name and route
  * @returns The route definition
  */
-const createRouteDef = ([method, route]: [string, Endpoint<any, any, any, any>]) => {
-  const { handlers, input, output, outputHeaders,...endpoint } = route
+const createRouteDef = ([method, route]: [
+  string,
+  Endpoint<any, any, any, any>
+]) => {
+  const { handlers, input, output, ...endpoint } = route
 
   return [method, endpoint]
 }

@@ -1,8 +1,8 @@
-import crypto from 'crypto'
-import { z } from 'zod'
-import { createEndpoint, createApp, Routing, OpenApiInfo } from '../src'
 import expresso from '@expresso/app'
 import server from '@expresso/server'
+import crypto from 'crypto'
+import { z } from 'zod'
+import { createApp, createEndpoint, OpenApiInfo, Routing } from '../src'
 
 type User = { id: string; name: string; email: string; password: string }
 
@@ -32,21 +32,23 @@ const createUser = createEndpoint({
     }
   },
   output: {
-    201: z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      email: z.string().email().min(1)
-    }),
-    409: z.object({
-      status: z.literal(409),
-      message: z.string().min(1)
-    })
-  },
-  outputHeaders: {
     201: {
-      'x-content-range': {
-        description: 'Describes a content range'
+      body: z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        email: z.string().email().min(1)
+      }),
+      headers: {
+        'x-content-range': {
+          description: 'Describes a content range'
+        }
       }
+    },
+    409: {
+      body: z.object({
+        status: z.literal(409),
+        message: z.string().min(1)
+      })
     }
   },
   handlers: [
@@ -86,13 +88,17 @@ const login = createEndpoint({
     })
   },
   output: {
-    200: z.object({
-      token: z.string().min(1)
-    }),
-    401: z.object({
-      status: z.literal(401),
-      message: z.string().min(1)
-    })
+    200: {
+      body: z.object({
+        token: z.string().min(1)
+      })
+    },
+    401: {
+      body: z.object({
+        status: z.literal(401),
+        message: z.string().min(1)
+      })
+    }
   },
   handlers: (req, res) => {
     const { email, password } = req.body
@@ -113,12 +119,34 @@ const login = createEndpoint({
   }
 })
 
+const dummy = createEndpoint({
+  description: 'This is a dummy endpoint',
+  input: {
+    body: z.object({
+      parent: z.object({
+        child: z.string()
+      })
+    })
+  },
+  output: {
+    200: {
+      body: z.object({ ok: z.boolean() })
+    }
+  },
+  handlers: (_req, res, _next) => {
+    res.status(200).json({ ok: true })
+  }
+})
+
 const routing: Routing = {
   '/users': {
     post: createUser
   },
   '/login': {
     post: login
+  },
+  '/dummy': {
+    post: dummy
   }
 }
 
