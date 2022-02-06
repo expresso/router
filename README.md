@@ -18,13 +18,11 @@ When creating an endpoint, you need to describe its input, output and give it at
 
 The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
 
-The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a Zod schema describing the body of that response. The `res.json` typing will ensure that you fulfill at least one of the response bodies, but **will not** match the status code and body (this is a typing limitation and PRs are very welcome).
-
-The `outputHeaders` property allows you to specify headers that are sent with each response code specified in the `output` property. This property is an object containing a `<statusCode, <string, HeaderObject>>` map.
+The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a `body` property, which is the Zod schema describing the body of that response. Optionally, each status code can also have a `headers` property, containing the Response headers for that status code. The `res.json` typing will ensure that you fulfill at least one of the response bodies, but **will not** match the status code and body (this is a typing limitation and PRs are very welcome).
 
 The `handlers` property is a function or array of optionally async functions. Errors and async errors are automatically captured and fed to `next`, so the express error handling flow works as normal.
 
-Besides the `input`, `output` and `handlers` properties, you can also define a `description` property, which will be used to generate the OpenAPI documentation. All other OpenAPI properties for an endpoint are supported, but optional. We recommend using the `tags` property to group this endpoint with other similar ones. If you don't specify a `tags` property, the endpoint will be grouped with the default tag `"default"`.
+Besides the `input`, `output` and `handlers` properties. All other OpenAPI properties for an endpoint are supported, but optional. We recommend using the `tags` property to group this endpoint with other similar ones and the `description` property to add a little bit of context to your endpoints. If you don't specify a `tags` property, the endpoint will be grouped with the default tag `"default"`.
 
 You can see more about the OpenAPI specification at [https://swagger.io/](https://swagger.io/).
 
@@ -33,54 +31,77 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { createEndpoint } from '@expresso/router';
 
-export const createUser = createEndpoint({
+type User = { id: string; name: string; email: string; password: string }
+
+const USERS: User[] = []
+
+const createUser = createEndpoint({
+  description: 'If you call this and a user already exists, it will be shit',
   summary: 'Create a new user',
-  description:
-    'If a user with that email already exists, the 409 response will be used. If that happens, you can resend this request with a new email to try again',
-  tags: ['Users'],
+  tags: ['Usuários'],
   input: {
     body: z.object({
       name: z.string().min(1),
       email: z.string().email().min(1),
-      password: z.string().min(16),
+      password: z.string().min(16)
+    }),
+    query: z.object({
+      testNumber: z
+        .string()
+        .refine((s) => !Number.isNaN(Number(s)))
+        .transform((n) => parseInt(n, 10))
+        .optional()
     }),
     headers: {
       authorization: {
-        description: 'Auth token',
-        example: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.ErO0fS1yKjr73zJmeYqazVauy8z4Xwuhebs9fXVr3u4'
+        description: 'Authorization token'
       }
     }
   },
   output: {
-    201: z.object({
-      id: z.string().min(1),
-      name: z.string().min(1),
-      email: z.string().email().min(1),
-    }),
-    409: z.object({
-      status: z.literal(409),
-      message: z.string().min(1),
-    }),
-  },
-  outputHeaders: {
     201: {
-      location: {
-        description: 'URL of the user that was created'
+      body: z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        email: z.string().email().min(1)
+      }),
+      headers: {
+        'x-content-range': {
+          description: 'Describes a content range'
+        }
       }
+    },
+    409: {
+      body: z.object({
+        status: z.literal(409),
+        message: z.string().min(1)
+      })
     }
   },
-  handlers: (req, res) => {
-    const { name, email } = req.body;
+  handlers: [
+    (_req, _res, next) => {
+      next()
+    },
+    (req, res) => {
+      const { name, email, password } = req.body
 
-    const id = crypto.randomBytes(16).toString('hex');
+      const id = crypto.randomBytes(16).toString('hex')
 
-    res.status(201).json({
-      id,
-      name,
-      email,
-    });
-  },
-});
+      USERS.push({
+        id,
+        name,
+        email,
+        password
+      })
+
+      res.status(201).json({
+        id,
+        name,
+        email
+      })
+    }
+  ]
+})
 ```
 
 ### Defining routes
