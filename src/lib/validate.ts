@@ -1,10 +1,8 @@
 import { RequestHandler } from 'express'
-import { EndpointCreationParams } from './create-endpoint'
+import { EndpointParams } from './create-endpoint'
 
 export const validate =
-  (
-    inputSchema: EndpointCreationParams<any, any, any, any>['input']
-  ): RequestHandler =>
+  (inputSchema: EndpointParams<any, any, any, any>['input']): RequestHandler =>
   async (req, _res, next) => {
     try {
       if (inputSchema.body) req.body = inputSchema.body.parse(req.body)
