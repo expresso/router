@@ -1,3 +1,13 @@
+# [5.0.0](https://github.com/expresso/router/compare/v4.0.0...v5.0.0) (2022-08-18)
+
+
+* feat!: type safety for reseponse status and body ([51ef0a0](https://github.com/expresso/router/commit/51ef0a05f557a538d20ea5d970acf6298e01bd2a))
+
+
+### BREAKING CHANGES
+
+* types will now require that you use the correct `body` for a given `status` when calling `res.json`
+
 # [4.0.0](https://github.com/expresso/router/compare/v3.0.1...v4.0.0) (2022-02-06)
 
 
