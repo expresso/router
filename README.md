@@ -18,7 +18,7 @@ When creating an endpoint, you need to describe its input, output and give it at
 
 The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
 
-The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a `body` property, which is the Zod schema describing the body of that response. Optionally, each status code can also have a `headers` property, containing the Response headers for that status code. The `res.json` typing will ensure that you fulfill at least one of the response bodies, but **will not** match the status code and body (this is a typing limitation and PRs are very welcome).
+The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a `body` property, which is the Zod schema describing the body of that response. Optionally, each status code can also have a `headers` property, containing the Response headers for that status code. The `res.json` typing will ensure that you use the correct body for the status you choose.
 
 The `handlers` property is a function or array of optionally async functions. Errors and async errors are automatically captured and fed to `next`, so the express error handling flow works as normal.
 

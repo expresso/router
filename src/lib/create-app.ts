@@ -142,7 +142,7 @@ export const createApp = (config: CreateAppParams) => {
   // User Routes
   Object.entries(wrappedRoutes).forEach(([path, methods]) => {
     Object.entries(methods).forEach(([method, endpoint]) => {
-      app[method as HttpMethod](path, endpoint.handlers)
+      app[method as HttpMethod](path, endpoint.handlers as any)
     })
   })
 
