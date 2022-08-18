@@ -1,7 +1,8 @@
 # [5.0.0](https://github.com/expresso/router/compare/v4.0.0...v5.0.0) (2022-08-18)
 
+### Features
 
-* feat!: type safety for reseponse status and body ([51ef0a0](https://github.com/expresso/router/commit/51ef0a05f557a538d20ea5d970acf6298e01bd2a))
+* type safety for reseponse status and body ([51ef0a0](https://github.com/expresso/router/commit/51ef0a05f557a538d20ea5d970acf6298e01bd2a))
 
 
 ### BREAKING CHANGES
