@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/expresso/router/compare/v5.0.1...v5.0.2) (2022-09-25)
+
+
+### Bug Fixes
+
+* force release ([464cf15](https://github.com/expresso/router/commit/464cf15d781d79322c0a3c787bb7ff9df51f3f57))
+
 ## [5.0.1](https://github.com/expresso/router/compare/v5.0.0...v5.0.1) (2022-08-18)
 
 # [5.0.0](https://github.com/expresso/router/compare/v4.0.0...v5.0.0) (2022-08-18)
