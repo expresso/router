@@ -12,11 +12,11 @@ import {
 } from 'openapi3-ts/oas31'
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yaml'
-import { createApi } from '..'
-import { type Route, type HttpMethod, type FlatRouting } from './create-api'
+import { createApi, type FlatRouting, type HttpMethod, type Route } from './create-api'
 import { errorHandler } from './error-handler'
 import { rescue } from './rescue'
 import { validate } from './validate'
+import { type ErrorHandler, type Handler } from './create-endpoint'
 
 /**
  * OpenAPI definitions for the API object.
@@ -203,7 +203,15 @@ export function createApp(config: CreateAppParams) {
   // Apply user routes
   for (const [path, methods] of Object.entries(wrappedRoutes)) {
     for (const [method, endpoint] of Object.entries(methods)) {
-      const handlers = Array.isArray(endpoint.handlers) ? endpoint.handlers : [endpoint.handlers]
+      const handlers: Array<Handler | ErrorHandler> = Array.isArray(endpoint.handlers)
+        ? endpoint.handlers
+        : [endpoint.handlers]
+
+      // If the route has an error handler, add it to the handlers array
+      // This will make sure that the error handler is executed after the handlers for that route only
+      if (endpoint.errorHandler) {
+        handlers.push(endpoint.errorHandler)
+      }
       app[method as HttpMethod](path, ...handlers)
     }
   }

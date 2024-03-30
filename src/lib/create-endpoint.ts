@@ -18,7 +18,7 @@ export type InferBodyValues<T extends ResponseMap> = {
   [k in keyof T]: z.infer<T[k]['body']>
 }
 
-export type Handler<RequestBody, Params, Query, ResponseBody extends ResponseMap> = (
+export type Handler<RequestBody = any, Params = any, Query = any, ResponseBody extends ResponseMap = any> = (
   req: Express.Request<Params, ResponseBody, RequestBody, Query>,
   res: Omit<Express.Response<ValueOf<InferBodyValues<ResponseBody>>>, 'status'> & {
     status: <const T extends number>(
@@ -30,7 +30,7 @@ export type Handler<RequestBody, Params, Query, ResponseBody extends ResponseMap
   next: Express.NextFunction,
 ) => any
 
-export type ErrorHandler<RequestBody, Params, Query, ResponseBody extends ResponseMap> = (
+export type ErrorHandler<RequestBody = any, Params = any, Query = any, ResponseBody extends ResponseMap = any> = (
   err: unknown,
   req: Express.Request<Params, ResponseBody, RequestBody, Query>,
   res: Omit<Express.Response<ValueOf<InferBodyValues<ResponseBody>>>, 'status'> & {
@@ -49,15 +49,22 @@ export type Endpoint<
   Query = any,
   ResponseBodies extends ResponseMap = any,
 > = OperationObject & {
-  handlers: OneOrMore<Handler<RequestBody, Params, Query, ResponseBodies>>
-  input?: {
-    body?: ZodObject<any, 'strip', ZodTypeAny, RequestBody, any>
-    params?: ZodObject<any, 'strip', ZodTypeAny, Params, any>
-    query?: ZodObject<any, 'strip', ZodTypeAny, Query, any>
-  }
+  handlers: EndpointParams<RequestBody, Params, Query, ResponseBodies>['handlers']
+  errorHandler?: EndpointParams<RequestBody, Params, Query, ResponseBodies>['errorHandler']
+  input?: EndpointParams<RequestBody, Params, Query, ResponseBodies>['input']
   output: ResponseBodies
 }
 
+/**
+ * Parameters for creating an endpoint
+ * @property [input.body] The body schema that will be validated
+ * @property [input.params] The params schema that will be validated
+ * @property [input.query] The query schema that will be validated
+ * @property [input.headers] The headers schema that will be validated
+ * @property output The output schema that will be validated
+ * @property handlers The handlers that will be executed, those handlers are not error handlers
+ * @property [errorHandler] The error handlers that will be executed after the handlers
+ */
 export type EndpointParams<
   RequestBody,
   Params,
@@ -72,6 +79,7 @@ export type EndpointParams<
   }
   output: ResponseBodies
   handlers: OneOrMore<Handler<RequestBody, Params, Query, ResponseBodies>>
+  errorHandler?: ErrorHandler<RequestBody, Params, Query, ResponseBodies>
 }
 
 function getResponseFromOutput([status, definition]: [string, ResponseDefinition]): [string, ResponseObject] {
@@ -98,7 +106,7 @@ function getResponseFromOutput([status, definition]: [string, ResponseDefinition
 export function createEndpoint<RequestBody, Params, Query, ResponseBodies extends Record<number, ResponseDefinition>>(
   definition: EndpointParams<RequestBody, Params, Query, ResponseBodies>,
 ): Endpoint<RequestBody, Params, Query, ResponseBodies> {
-  const { input, output, handlers, ...openApiParams } = definition
+  const { input, output, handlers, errorHandler, ...openApiParams } = definition
 
   const responses = Object.fromEntries(Object.entries(output).map(getResponseFromOutput))
 
@@ -132,6 +140,7 @@ export function createEndpoint<RequestBody, Params, Query, ResponseBodies extend
     parameters: params,
     requestBody: input?.body ? { content: { 'application/json': { schema: generateSchema(input.body) } } } : undefined,
     handlers,
+    errorHandler,
     input,
     output,
   }
