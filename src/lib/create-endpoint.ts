@@ -1,18 +1,18 @@
 import { generateSchema } from '@anatine/zod-openapi'
-import * as Express from 'express'
+import type * as Express from 'express'
 import {
-  HeadersObject,
-  OperationObject,
-  ParameterLocation,
-  ResponseObject
-} from 'openapi3-ts'
-import { z, ZodObject, ZodTypeAny } from 'zod'
+  type HeadersObject,
+  type OperationObject,
+  type ParameterLocation,
+  type ResponseObject,
+} from 'openapi3-ts/oas31'
+import { z, type ZodObject, type ZodTypeAny } from 'zod'
 
 const emptySchema = z.object({})
 
 export type OneOrMore<T> = T | T[]
 export type ValueOf<T> = T[keyof T]
-export type ResponseDefinition = {
+export interface ResponseDefinition {
   body: ZodTypeAny
   headers?: HeadersObject
 }
@@ -21,43 +21,33 @@ export type InferBodyValues<T extends ResponseMap> = {
   [k in keyof T]: z.infer<T[k]['body']>
 }
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
-  k: infer I
-) => void
-  ? I
-  : never
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
 
-export type Handler<
-  RequestBody,
-  Params,
-  Query,
-  ResponseBody extends ResponseMap
-> = (
+export type Handler<RequestBody, Params, Query, ResponseBody extends ResponseMap> = (
   req: Express.Request<Params, ResponseBody, RequestBody, Query>,
-  res: Express.Response<ValueOf<InferBodyValues<ResponseBody>>> &
-    {
-      [k in keyof ResponseBody as 'status']: UnionToIntersection<
-        k extends any
-          ? (status: k) => {
-              json: (body: z.output<ResponseBody[k]['body']>) => any
-            }
-          : never
-      >
-    },
-  next: Express.NextFunction
+  res: Express.Response<ValueOf<InferBodyValues<ResponseBody>>> & {
+    [k in keyof ResponseBody as 'status']: UnionToIntersection<
+      k extends number
+        ? (status: k) => {
+            json: (body: z.output<ResponseBody[k]['body']>) => any
+          }
+        : never
+    >
+  },
+  next: Express.NextFunction,
 ) => any
 
 export type Endpoint<
-  RequestBody,
-  Params,
-  Query,
-  ResponseBodies extends ResponseMap
+  RequestBody = any,
+  Params = any,
+  Query = any,
+  ResponseBodies extends ResponseMap = any,
 > = OperationObject & {
   handlers: OneOrMore<Handler<RequestBody, Params, Query, ResponseBodies>>
   input: {
-    body?: ZodObject<any>
-    params?: ZodObject<any>
-    query?: ZodObject<any>
+    body?: ZodObject<any, 'strip', ZodTypeAny, RequestBody, any>
+    params?: ZodObject<any, 'strip', ZodTypeAny, Params, any>
+    query?: ZodObject<any, 'strip', ZodTypeAny, Query, any>
   }
   output: ResponseBodies
 }
@@ -66,7 +56,7 @@ export type EndpointParams<
   RequestBody,
   Params,
   Query,
-  ResponseBodies extends ResponseMap
+  ResponseBodies extends ResponseMap,
 > = Partial<OperationObject> & {
   input: {
     body?: ZodObject<any, 'strip', ZodTypeAny, RequestBody, any>
@@ -78,10 +68,7 @@ export type EndpointParams<
   handlers: OneOrMore<Handler<RequestBody, Params, Query, ResponseBodies>>
 }
 
-const getResponseFromOutput = ([status, definition]: [
-  string,
-  ResponseDefinition
-]): [string, ResponseObject] => {
+function getResponseFromOutput([status, definition]: [string, ResponseDefinition]): [string, ResponseObject] {
   if (!`${status}`.match(/\d{3}/)) {
     throw new Error(`Invalid status code: ${status}`)
   }
@@ -89,73 +76,63 @@ const getResponseFromOutput = ([status, definition]: [
   const response: ResponseObject = {
     description: '',
     content: {
-      'application/json': { schema: generateSchema(definition.body) }
-    }
+      'application/json': { schema: generateSchema(definition.body) },
+    },
   }
 
   if (definition.headers) {
     response.headers = Object.fromEntries(
-      Object.entries(definition.headers).map(([key, value]) => [
-        key,
-        { schema: { type: 'string' }, ...value }
-      ])
+      Object.entries(definition.headers).map(([key, value]) => [key, { schema: { type: 'string' }, ...value }]),
     )
   }
 
   return [status, response]
 }
 
-export const createEndpoint = <
-  RequestBody,
-  Params,
-  Query,
-  ResponseBodies extends { [x: number]: ResponseDefinition }
->(
-  definition: EndpointParams<RequestBody, Params, Query, ResponseBodies>
-): Endpoint<RequestBody, Params, Query, ResponseBodies> => {
+export function createEndpoint<RequestBody, Params, Query, ResponseBodies extends Record<number, ResponseDefinition>>(
+  definition: EndpointParams<RequestBody, Params, Query, ResponseBodies>,
+): Endpoint<RequestBody, Params, Query, ResponseBodies> {
   const { input, output, handlers, ...openApiParams } = definition
 
-  const responses = Object.fromEntries(
-    Object.entries(output).map(getResponseFromOutput)
-  )
+  const responses = Object.fromEntries(Object.entries(output).map(getResponseFromOutput))
 
+  const inputParams: Record<string, unknown> = input.params ? input.params._def.shape() : {}
+  const inputQuery: Record<string, unknown> = input.query ? input.query._def.shape() : {}
   const params = [
-    ...Object.entries(input.params ? input.params._def.shape() : {}).map(
+    ...Object.entries(inputParams).map(
       ([key, value]) => ({
         in: 'path' as const,
         name: key,
         required: true,
-        schema: generateSchema(value as ZodTypeAny)
+        schema: generateSchema(value as ZodTypeAny),
       }),
-      ...Object.entries(input.query ? input.query._def.shape() : {}).map(
-        ([key, value]) => ({
-          name: key,
-          in: 'query' as const,
-          schema: generateSchema(value as ZodTypeAny)
-        })
-      ),
-      ...Object.entries(input.headers || {}).map(([key, value]) => ({
+      ...Object.entries(inputQuery).map(([key, value]) => ({
+        name: key,
+        in: 'query' as const,
+        schema: generateSchema(value as ZodTypeAny),
+      })),
+      ...Object.entries(input.headers ?? {}).map(([key, value]) => ({
         name: key,
         in: 'header' as ParameterLocation,
         schema: { type: 'string' as const },
-        ...value
-      }))
-    )
+        ...value,
+      })),
+    ),
   ]
 
   return {
     ...openApiParams,
     responses,
-    params,
+    parameters: params,
     requestBody: {
       content: {
         'application/json': {
-          schema: generateSchema(input.body ?? emptySchema)
-        }
-      }
+          schema: generateSchema(input.body ?? emptySchema),
+        },
+      },
     },
     handlers,
     input,
-    output
+    output,
   }
 }
