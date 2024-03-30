@@ -1,3 +1,10 @@
+# [6.1.0](https://github.com/expresso/router/compare/v6.0.0...v6.1.0) (2024-03-30)
+
+
+### Features
+
+* **createendpoint:** allow to omit the input property ([#16](https://github.com/expresso/router/issues/16)) ([d2851b0](https://github.com/expresso/router/commit/d2851b092fa793398f616bf58786e07189f64942))
+
 # [6.0.0](https://github.com/expresso/router/compare/v5.0.2...v6.0.0) (2024-03-30)
 
 
