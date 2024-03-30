@@ -9,7 +9,7 @@ export {
   type ResponseMap,
   type ResponseDefinition,
 } from './lib/create-endpoint'
-export { createApi, type Route, type HttpMethod } from './lib/create-api'
+export { type Route, type HttpMethod } from './lib/create-api'
 export { createApp, type OpenApiInfo, type CreateAppParams, type Routing } from './lib/create-app'
 
 // Extend Zod with OpenAPI support
