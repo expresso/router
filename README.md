@@ -11,6 +11,7 @@
   - [Usage](#usage)
     - [Defining an endpoint](#defining-an-endpoint)
       - [Endpoint error handling](#endpoint-error-handling)
+      - [Global Error Handling](#global-error-handling)
     - [Zod extension](#zod-extension)
     - [Defining routes](#defining-routes)
       - [Simple routes](#simple-routes)
@@ -216,6 +217,30 @@ const createUser = createEndpoint({
 })
 ```
 
+**Note**: The error handler passed to this property will only be available to this particular endpoint, if you want to create a global error handler, you can either use the `app.use` function **after** the `createApp` function, or you can refer to the [global error handling](#global-error-handling) section.
+
+#### Global Error Handling
+
+You can also pass a global error handler to the `createApp` function. This function is an Express error handling middleware with the signature `(err: any, req: Request, res: Response, next: NextFunction) => void`.
+
+This error handler is optional and **will be applied to all the routes in the API**. If you pass it, the handler will be called using `app.use` after the routes are added to the app.
+
+If this property is omitted, the default error handler will be used, this error handler is defined in [this file](./src/lib/error-handler.ts) and has the following signature:
+
+```ts
+export const errorHandler = (err: any, _req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof ZodError) {
+    return res.status(422).json({
+      message: 'Validation error. See `details` property',
+      details: err.issues,
+    })
+  }
+
+  next(err)
+}
+```
+
+It will only return a 422 status code with the validation issues if the error is an instance of `ZodError` (which means it will only capture validation errors), otherwise it will call `next(err)` allowing you to chain more handlers in the end of the middleware chain.
 
 ### Zod extension
 

@@ -13,7 +13,7 @@ import {
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yaml'
 import { createApi, type FlatRouting, type HttpMethod, type Route } from './create-api'
-import { errorHandler } from './error-handler'
+import { defaultErrorHandler } from './error-handler'
 import { rescue } from './rescue'
 import { validate } from './validate'
 import { type ErrorHandler, type Handler } from './create-endpoint'
@@ -80,10 +80,19 @@ interface FSOptions {
  */
 export type Routing = FlatRouting | Record<string, FlatRouting | Route>
 
+/**
+ * Params for creating the api
+ * @param openApiInfo OpenAPI specification params
+ * @param routing Route definitions
+ * @param [app] Optional express app to use, if not passed a new express app will be created
+ * @param [errorHandler] Optional error handler to use, if not passed the default error handler will be used
+ * @param [documentation] Optional documentation options
+ */
 export interface CreateAppParams {
   openApiInfo: OpenApiInfo
   routing: Routing
   app?: Express
+  errorHandler?: ErrorHandler
   documentation?:
     | Partial<{
         ui: UIOptions
@@ -170,7 +179,7 @@ function createExpressApp() {
  * @returns Express app
  */
 export function createApp(config: CreateAppParams) {
-  const { openApiInfo, routing, app = createExpressApp(), documentation } = config
+  const { openApiInfo, routing, app = createExpressApp(), documentation, errorHandler = defaultErrorHandler } = config
 
   const wrappedRoutes: FlatRouting = wrapWithRescueAndValidation(routing)
 
