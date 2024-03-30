@@ -141,6 +141,18 @@ const dummy = createEndpoint({
   },
 })
 
+const noInput = createEndpoint({
+  description: 'This is a dummy endpoint with no input',
+  output: {
+    200: {
+      body: z.object({ ok: z.boolean() }),
+    },
+  },
+  handlers: (_req, res, _next) => {
+    res.status(200).json({ ok: true })
+  },
+})
+
 const routing: Routing = {
   '/users': {
     post: createUser,
@@ -150,6 +162,9 @@ const routing: Routing = {
   },
   '/dummy': {
     post: dummy,
+  },
+  '/no-input': {
+    post: noInput,
   },
 }
 
