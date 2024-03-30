@@ -13,7 +13,7 @@ import {
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yaml'
 import { createApi } from '..'
-import { type HttpMethod, type Routing } from './create-api'
+import { type Route, type HttpMethod, type FlatRouting } from './create-api'
 import { errorHandler } from './error-handler'
 import { rescue } from './rescue'
 import { validate } from './validate'
@@ -36,6 +36,8 @@ interface FSOptions {
   path: string
   format: 'json' | 'yaml'
 }
+
+export type Routing = FlatRouting | Record<string, FlatRouting | Route>
 
 export interface CreateAppParams {
   openApiInfo: OpenApiInfo
@@ -70,9 +72,29 @@ function saveSpec(spec: OpenAPIObject, options: FSOptions) {
   fs.writeFileSync(options.path, content)
 }
 
-function wrapWithRescueAndValidation<T extends Routing>(routing: T) {
+const isNestedRouting = (routing: Record<string, unknown>): routing is Record<string, FlatRouting> =>
+  Object.keys(routing).every((key) => key.startsWith('/'))
+
+export function flattenRoutes<T extends Routing>(routing: T) {
+  const result: FlatRouting = {}
+
+  for (const [path, route] of Object.entries(routing)) {
+    if (isNestedRouting(route)) {
+      for (const [nestedPath, nestedRoute] of Object.entries(route)) {
+        result[`${path}${nestedPath}`] = nestedRoute
+      }
+      continue
+    }
+    result[path] = route
+  }
+
+  return result
+}
+
+export function wrapWithRescueAndValidation<T extends FlatRouting>(routing: T) {
+  const flatRoutes = flattenRoutes(routing)
   return Object.fromEntries(
-    Object.entries(routing).map(([path, route]) => [
+    Object.entries(flatRoutes).map(([path, route]) => [
       path,
       Object.fromEntries(
         Object.entries(route).map(([method, endpoint]) => {
@@ -90,6 +112,12 @@ function wrapWithRescueAndValidation<T extends Routing>(routing: T) {
   )
 }
 
+function createExpressApp() {
+  const app = express()
+  app.use(express.json())
+  return app
+}
+
 /**
  * Creates an express app with the given routing and openapi info.
  * @param config Info and options
@@ -101,9 +129,9 @@ function wrapWithRescueAndValidation<T extends Routing>(routing: T) {
  * @returns Express app
  */
 export function createApp(config: CreateAppParams) {
-  const { openApiInfo, routing, app = express(), documentation } = config
+  const { openApiInfo, routing, app = createExpressApp(), documentation } = config
 
-  const wrappedRoutes: Routing = wrapWithRescueAndValidation(routing)
+  const wrappedRoutes: FlatRouting = wrapWithRescueAndValidation(routing)
 
   const paths = createApi(routing)
 
@@ -134,7 +162,8 @@ export function createApp(config: CreateAppParams) {
   // Apply user routes
   for (const [path, methods] of Object.entries(wrappedRoutes)) {
     for (const [method, endpoint] of Object.entries(methods)) {
-      app[method as HttpMethod](path, endpoint.handlers)
+      const handlers = Array.isArray(endpoint.handlers) ? endpoint.handlers : [endpoint.handlers]
+      app[method as HttpMethod](path, ...handlers)
     }
   }
 
