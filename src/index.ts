@@ -9,8 +9,8 @@ export {
   type ResponseMap,
   type ResponseDefinition,
 } from './lib/create-endpoint'
-export { createApi, type Route, type HttpMethod, type Routing } from './lib/create-api'
-export { createApp, type OpenApiInfo, type CreateAppParams, type MaybeNestedRouting } from './lib/create-app'
+export { createApi, type Route, type HttpMethod } from './lib/create-api'
+export { createApp, type OpenApiInfo, type CreateAppParams, type Routing } from './lib/create-app'
 
 // Extend Zod with OpenAPI support
 extendZodWithOpenApi(z)

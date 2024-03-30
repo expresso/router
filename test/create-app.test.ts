@@ -1,13 +1,12 @@
 import { describe, it } from 'node:test'
+import { Routing, z } from '../src'
 import { flattenRoutes, wrapWithRescueAndValidation } from '../src/lib/create-app'
-import { MaybeNestedRouting, Routing, z } from '../src'
-import { assert } from 'node:console'
 import { deepStrictEqual, strictEqual } from 'node:assert'
 
 describe('create-app', () => {
   describe('flattenRoutes', () => {
     it('should flatten nested routes', () => {
-      const routes: MaybeNestedRouting = {
+      const routes: Routing = {
         '/users': {
           '/me': {
             get: {
@@ -76,7 +75,7 @@ describe('create-app', () => {
     })
 
     it('should handle nested routes', () => {
-      const routes: MaybeNestedRouting = {
+      const routes: Routing = {
         '/users': {
           '/me': {
             post: {

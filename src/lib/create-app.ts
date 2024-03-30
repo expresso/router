@@ -13,7 +13,7 @@ import {
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yaml'
 import { createApi } from '..'
-import { type Route, type HttpMethod, type Routing } from './create-api'
+import { type Route, type HttpMethod, type FlatRouting } from './create-api'
 import { errorHandler } from './error-handler'
 import { rescue } from './rescue'
 import { validate } from './validate'
@@ -37,11 +37,11 @@ interface FSOptions {
   format: 'json' | 'yaml'
 }
 
-export type MaybeNestedRouting = Routing | Record<string, Routing | Route>
+export type Routing = FlatRouting | Record<string, FlatRouting | Route>
 
 export interface CreateAppParams {
   openApiInfo: OpenApiInfo
-  routing: Routing
+  routing: FlatRouting
   app?: Express
   documentation?:
     | Partial<{
@@ -72,11 +72,11 @@ function saveSpec(spec: OpenAPIObject, options: FSOptions) {
   fs.writeFileSync(options.path, content)
 }
 
-const isNestedRouting = (routing: Record<string, unknown>): routing is Record<string, Routing> =>
+const isNestedRouting = (routing: Record<string, unknown>): routing is Record<string, FlatRouting> =>
   Object.keys(routing).every((key) => key.startsWith('/'))
 
-export function flattenRoutes<T extends MaybeNestedRouting>(routing: T) {
-  const result: Routing = {}
+export function flattenRoutes<T extends Routing>(routing: T) {
+  const result: FlatRouting = {}
 
   for (const [path, route] of Object.entries(routing)) {
     if (isNestedRouting(route)) {
@@ -91,7 +91,7 @@ export function flattenRoutes<T extends MaybeNestedRouting>(routing: T) {
   return result
 }
 
-export function wrapWithRescueAndValidation<T extends Routing>(routing: T) {
+export function wrapWithRescueAndValidation<T extends FlatRouting>(routing: T) {
   const flatRoutes = flattenRoutes(routing)
   return Object.fromEntries(
     Object.entries(flatRoutes).map(([path, route]) => [
@@ -125,7 +125,7 @@ export function wrapWithRescueAndValidation<T extends Routing>(routing: T) {
 export function createApp(config: CreateAppParams) {
   const { openApiInfo, routing, app = express(), documentation } = config
 
-  const wrappedRoutes: Routing = wrapWithRescueAndValidation(routing)
+  const wrappedRoutes: FlatRouting = wrapWithRescueAndValidation(routing)
 
   const paths = createApi(routing)
 
