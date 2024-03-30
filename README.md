@@ -1,7 +1,5 @@
 # Expresso Router
 
-# Expresso Router
-
 > Self documented, self validated, typescript-first router for express
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
@@ -26,7 +24,6 @@
 
 - Automatic input validation with [Zod](https://www.npmjs.com/package/zod)
 - Automatic OpenAPI extension with Zod
-- Automatic OpenAPI extension with Zod
 - Type safe input and output
 - Auto generated documentation
 
@@ -39,7 +36,6 @@ Expresso router's main function is the `createEndpoint` function. This function 
 When creating an endpoint, you need to describe its input, output and give it at least one handler.
 
 The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. If your request has no inputs you can omit this property. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
-The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. If your request has no inputs you can omit this property. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
 
 The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a `body` property, which is the Zod schema describing the body of that response. Optionally, each status code can also have a `headers` property, containing the Response headers for that status code. The `res.status().json()` typing will ensure that you use the correct body for the status you choose.
 
@@ -50,9 +46,8 @@ Besides the `input`, `output` and `handlers` properties. All other OpenAPI prope
 You can see more about the OpenAPI specification at [https://swagger.io/](https://swagger.io/).
 
 ```typescript
-import crypto from 'crypto'
-import { createEndpoint, z } from '@expresso/router'
-import { createEndpoint, z } from '@expresso/router'
+import crypto from 'crypto';
+import { createEndpoint, z } from '@expresso/router';
 
 type User = { id: string; name: string; email: string; password: string }
 
@@ -66,40 +61,40 @@ const createUser = createEndpoint({
     body: z.object({
       name: z.string().min(1),
       email: z.string().email().min(1),
-      password: z.string().min(16),
+      password: z.string().min(16)
     }),
     query: z.object({
       testNumber: z
         .string()
         .refine((s) => !Number.isNaN(Number(s)))
         .transform((n) => parseInt(n, 10))
-        .optional(),
+        .optional()
     }),
     headers: {
       authorization: {
-        description: 'Authorization token',
-      },
-    },
+        description: 'Authorization token'
+      }
+    }
   },
   output: {
     201: {
       body: z.object({
         id: z.string().min(1),
         name: z.string().min(1),
-        email: z.string().email().min(1),
+        email: z.string().email().min(1)
       }),
       headers: {
         'x-content-range': {
-          description: 'Describes a content range',
-        },
-      },
+          description: 'Describes a content range'
+        }
+      }
     },
     409: {
       body: z.object({
         status: z.literal(409),
-        message: z.string().min(1),
-      }),
-    },
+        message: z.string().min(1)
+      })
+    }
   },
   handlers: [
     (_req, _res, next) => {
@@ -114,16 +109,16 @@ const createUser = createEndpoint({
         id,
         name,
         email,
-        password,
+        password
       })
 
       res.status(201).json({
         id,
         name,
-        email,
+        email
       })
-    },
-  ],
+    }
+  ]
 })
 ```
 
@@ -134,8 +129,8 @@ Each endpoint object allows you to pass a single error handler function, this fu
 This object is optional and can be passed as the `errorHandler` property of the endpoint object. If you pass it, the error handler will be concatenated in the end of the handlers array, so it will be called after all other handlers in case there's an error.
 
 ```typescript
-import crypto from 'crypto'
-import { createEndpoint, z } from '@expresso/router'
+import crypto from 'crypto';
+import { createEndpoint, z } from '@expresso/router';
 
 type User = { id: string; name: string; email: string; password: string }
 
@@ -149,40 +144,40 @@ const createUser = createEndpoint({
     body: z.object({
       name: z.string().min(1),
       email: z.string().email().min(1),
-      password: z.string().min(16),
+      password: z.string().min(16)
     }),
     query: z.object({
       testNumber: z
         .string()
         .refine((s) => !Number.isNaN(Number(s)))
         .transform((n) => parseInt(n, 10))
-        .optional(),
+        .optional()
     }),
     headers: {
       authorization: {
-        description: 'Authorization token',
-      },
-    },
+        description: 'Authorization token'
+      }
+    }
   },
   output: {
     201: {
       body: z.object({
         id: z.string().min(1),
         name: z.string().min(1),
-        email: z.string().email().min(1),
+        email: z.string().email().min(1)
       }),
       headers: {
         'x-content-range': {
-          description: 'Describes a content range',
-        },
-      },
+          description: 'Describes a content range'
+        }
+      }
     },
     409: {
       body: z.object({
         status: z.literal(409),
-        message: z.string().min(1),
-      }),
-    },
+        message: z.string().min(1)
+      })
+    }
   },
   handlers: [
     (_req, _res, next) => {
@@ -201,24 +196,24 @@ const createUser = createEndpoint({
         id,
         name,
         email,
-        password,
+        password
       })
 
       res.status(201).json({
         id,
         name,
-        email,
+        email
       })
-    },
+    }
   ],
   errorHandler: (err, _req, res) => {
     if (err instanceof UserError) {
       return res.status(409).json({
         status: 409,
-        message: err.message,
+        message: err.message
       })
     }
-  },
+  }
 })
 ```
 
@@ -254,8 +249,8 @@ The router also exports an extension of the Zod lib with an extra method, `opena
 This feature uses the underlying `extendZodWithOpenApi` function from the [@anatine/zod-openapi](https://www.npmjs.com/package/@anatine/zod-openapi) package. If you want to import your own Zod function, this is also possible, just make sure to use the `extendZodWithOpenApi` function from the same package.
 
 ```typescript
-import crypto from 'crypto'
-import { createEndpoint, z } from '@expresso/router'
+import crypto from 'crypto';
+import { createEndpoint, z } from '@expresso/router';
 
 type User = { id: string; name: string; email: string; password: string }
 
@@ -269,7 +264,7 @@ const createUser = createEndpoint({
     body: z.object({
       name: z.string().min(1).openapi({ description: 'This is the username', example: 'JohnDoe' }),
       email: z.string().email().min(1),
-      password: z.string().min(16),
+      password: z.string().min(16)
     }),
     query: z.object({
       testNumber: z
@@ -277,33 +272,33 @@ const createUser = createEndpoint({
         .refine((s) => !Number.isNaN(Number(s)))
         .transform((n) => parseInt(n, 10))
         .optional()
-        .openapi({ default: 100 }),
+        .openapi({ default: 100 })
     }),
     headers: {
       authorization: {
-        description: 'Authorization token',
-      },
-    },
+        description: 'Authorization token'
+      }
+    }
   },
   output: {
     201: {
       body: z.object({
         id: z.string().min(1),
         name: z.string().min(1),
-        email: z.string().email().min(1),
+        email: z.string().email().min(1)
       }),
       headers: {
         'x-content-range': {
-          description: 'Describes a content range',
-        },
-      },
+          description: 'Describes a content range'
+        }
+      }
     },
     409: {
       body: z.object({
         status: z.literal(409),
-        message: z.string().min(1),
-      }),
-    },
+        message: z.string().min(1)
+      })
+    }
   },
   handlers: [
     (_req, _res, next) => {
@@ -318,16 +313,16 @@ const createUser = createEndpoint({
         id,
         name,
         email,
-        password,
+        password
       })
 
       res.status(201).json({
         id,
         name,
-        email,
+        email
       })
-    },
-  ],
+    }
+  ]
 })
 ```
 
@@ -337,19 +332,17 @@ const createUser = createEndpoint({
 
 #### Simple routes
 
-#### Simple routes
-
 The routing object has the paths at its main level, with each path having properties for the HTTP methods they handle. The `Routing` type defines a routing object:
 
 ```typescript
-import { createUser } from './endpoints/create-user.ts'
-import { Routing } from '@expresso/router'
+import { createUser } from './endpoints/create-user.ts';
+import { Routing } from '@expresso/router';
 
 export const routing: Routing = {
   '/users': {
     post: createUser,
   },
-}
+};
 ```
 
 #### Nested (prefixed) routes
@@ -357,9 +350,9 @@ export const routing: Routing = {
 You can also nest routes by creating a new `Routing` object inside the parent route. This is useful for grouping routes that share a common prefix.
 
 ```typescript
-import { createUser, updateUser, deleteUser } from './endpoints/create-user.ts'
-import { getMe } from './endpoints/me.ts'
-import { Routing } from '@expresso/router'
+import { createUser, updateUser, deleteUser } from './endpoints/create-user.ts';
+import { getMe } from './endpoints/me.ts';
+import { Routing } from '@expresso/router';
 
 export const routing: Routing = {
   '/users': {
@@ -374,36 +367,8 @@ export const routing: Routing = {
   },
   '/me': {
     get: getMe,
-  },
-}
-```
-
-## Putting everything together
-
-#### Nested (prefixed) routes
-
-You can also nest routes by creating a new `Routing` object inside the parent route. This is useful for grouping routes that share a common prefix.
-
-```typescript
-import { createUser, updateUser, deleteUser } from './endpoints/create-user.ts'
-import { getMe } from './endpoints/me.ts'
-import { Routing } from '@expresso/router'
-
-export const routing: Routing = {
-  '/users': {
-    '/': {
-      post: createUser,
-    },
-    '/:id': {
-      get: getUser,
-      put: updateUser,
-      delete: deleteUser,
-    },
-  },
-  '/me': {
-    get: getMe,
-  },
-}
+  }
+};
 ```
 
 ## Putting everything together
@@ -428,31 +393,31 @@ The documentation can be customized via the `documentation` property, which acce
   - `format` (`'json'` | `'yaml'`): Specifies the format of the generated document
 
 ```typescript
-import { routing } from './routing.ts'
-import { createApp, OpenApiInfo } from '../src'
+import { routing } from './routing.ts'
+import { createApp, OpenApiInfo } from '../src'
 
-const openApiInfo: OpenApiInfo = {
-  info: {
-    title: 'Test API',
-    version: '1.0.0',
-  },
-  openapi: '3.0.1',
-  servers: [{ url: 'http://localhost:3000' }],
+const openApiInfo: OpenApiInfo = {
+  info: {
+    title: 'Test API',
+    version: '1.0.0'
+  },
+  openapi: '3.0.1',
+  servers: [{ url: 'http://localhost:3000' }]
 }
 
-const app = createApp({
+const app = createApp({
   openApiInfo,
   routing,
   documentation: {
     json: true,
     fs: {
       path: './docs/swagger.json',
-      format: 'json',
-    },
-  },
+      format: 'json'
+    }
+  }
 })
 
-app.listen(3000, () => {
-  console.log('Listening on 3000')
+app.listen(3000, () => {
+  console.log('Listening on 3000')
 })
 ```
