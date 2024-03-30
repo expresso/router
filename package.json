@@ -3,6 +3,9 @@
   "version": "5.0.2",
   "main": "dist/index.js",
   "description": "@expresso framework library",
+  "engines": {
+    "node": ">=18"
+  },
   "keywords": [
     "swagger",
     "zod",
@@ -12,7 +15,7 @@
     "expresso"
   ],
   "scripts": {
-    "test": "node --import tsx --test test/**/*.ts",
+    "test": "node --import tsx --test test/*",
     "build": "tsc",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
     "build:clean": "npm run build && npm run build",
