@@ -126,7 +126,11 @@ describe('create-app', () => {
                 throw new Error()
               },
             ],
-            output: {},
+            output: {
+              200: {
+                body: z.any(),
+              },
+            },
           }),
         },
       },
@@ -349,7 +353,11 @@ describe('create-app', () => {
                   throw new Error('Error from get')
                 },
               ],
-              output: {},
+              output: {
+                200: {
+                  body: z.any(),
+                },
+              },
             }),
             post: createEndpoint({
               handlers: [
@@ -357,7 +365,11 @@ describe('create-app', () => {
                   throw new Error('Error from post')
                 },
               ],
-              output: {},
+              output: {
+                200: {
+                  body: z.any(),
+                },
+              },
             }),
           },
         },

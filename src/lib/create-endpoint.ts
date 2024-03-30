@@ -7,7 +7,7 @@ import {
   type ResponseObject,
 } from 'openapi3-ts/oas31'
 import { type ZodObject, type ZodTypeAny, type z } from 'zod'
-import { type OneOrMore, type ValueOf } from '../types'
+import { type NonEmptyObj, type OneOrMore, type ValueOf } from '../types'
 
 export interface ResponseDefinition {
   body: ZodTypeAny
@@ -52,7 +52,7 @@ export type Endpoint<
   handlers: EndpointParams<RequestBody, Params, Query, ResponseBodies>['handlers']
   errorHandler?: EndpointParams<RequestBody, Params, Query, ResponseBodies>['errorHandler']
   input?: EndpointParams<RequestBody, Params, Query, ResponseBodies>['input']
-  output: ResponseBodies
+  output: EndpointParams<RequestBody, Params, Query, ResponseBodies>['output']
 }
 
 /**
@@ -77,7 +77,7 @@ export type EndpointParams<
     query?: ZodObject<any, 'strip', ZodTypeAny, Query, any>
     headers?: HeadersObject
   }
-  output: ResponseBodies
+  output: NonEmptyObj<ResponseBodies, 'Output cannot be empty'>
   handlers: OneOrMore<Handler<RequestBody, Params, Query, ResponseBodies>>
   errorHandler?: ErrorHandler<RequestBody, Params, Query, ResponseBodies>
 }
