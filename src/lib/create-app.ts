@@ -78,9 +78,10 @@ function wrapWithRescueAndValidation<T extends Routing>(routing: T) {
         Object.entries(route).map(([method, endpoint]) => {
           const handlers = Array.isArray(endpoint.handlers) ? endpoint.handlers : [endpoint.handlers]
           const rescuedHandlers = handlers.map(rescue)
+          const finalHandlers = endpoint.input ? [validate(endpoint.input), ...rescuedHandlers] : rescuedHandlers
           const wrappedRouteDef = {
             ...endpoint,
-            handlers: [validate(endpoint.input), ...rescuedHandlers],
+            handlers: finalHandlers,
           }
           return [method, wrappedRouteDef]
         }),

@@ -6,9 +6,7 @@ import {
   type ParameterLocation,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { z, type ZodObject, type ZodTypeAny } from 'zod'
-
-const emptySchema = z.object({})
+import { type z, type ZodObject, type ZodTypeAny } from 'zod'
 
 export type OneOrMore<T> = T | T[]
 export type ValueOf<T> = T[keyof T]
@@ -44,7 +42,7 @@ export type Endpoint<
   ResponseBodies extends ResponseMap = any,
 > = OperationObject & {
   handlers: OneOrMore<Handler<RequestBody, Params, Query, ResponseBodies>>
-  input: {
+  input?: {
     body?: ZodObject<any, 'strip', ZodTypeAny, RequestBody, any>
     params?: ZodObject<any, 'strip', ZodTypeAny, Params, any>
     query?: ZodObject<any, 'strip', ZodTypeAny, Query, any>
@@ -58,7 +56,7 @@ export type EndpointParams<
   Query,
   ResponseBodies extends ResponseMap,
 > = Partial<OperationObject> & {
-  input: {
+  input?: {
     body?: ZodObject<any, 'strip', ZodTypeAny, RequestBody, any>
     params?: ZodObject<any, 'strip', ZodTypeAny, Params, any>
     query?: ZodObject<any, 'strip', ZodTypeAny, Query, any>
@@ -96,8 +94,8 @@ export function createEndpoint<RequestBody, Params, Query, ResponseBodies extend
 
   const responses = Object.fromEntries(Object.entries(output).map(getResponseFromOutput))
 
-  const inputParams: Record<string, unknown> = input.params ? input.params._def.shape() : {}
-  const inputQuery: Record<string, unknown> = input.query ? input.query._def.shape() : {}
+  const inputParams: Record<string, unknown> = input?.params ? input.params._def.shape() : {}
+  const inputQuery: Record<string, unknown> = input?.query ? input.query._def.shape() : {}
   const params = [
     ...Object.entries(inputParams).map(
       ([key, value]) => ({
@@ -111,7 +109,7 @@ export function createEndpoint<RequestBody, Params, Query, ResponseBodies extend
         in: 'query' as const,
         schema: generateSchema(value as ZodTypeAny),
       })),
-      ...Object.entries(input.headers ?? {}).map(([key, value]) => ({
+      ...Object.entries(input?.headers ?? {}).map(([key, value]) => ({
         name: key,
         in: 'header' as ParameterLocation,
         schema: { type: 'string' as const },
@@ -124,13 +122,7 @@ export function createEndpoint<RequestBody, Params, Query, ResponseBodies extend
     ...openApiParams,
     responses,
     parameters: params,
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: generateSchema(input.body ?? emptySchema),
-        },
-      },
-    },
+    requestBody: input?.body ? { content: { 'application/json': { schema: generateSchema(input.body) } } } : undefined,
     handlers,
     input,
     output,
