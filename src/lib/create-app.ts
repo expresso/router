@@ -1,4 +1,4 @@
-import express, { type Express } from 'express'
+import express, { type ErrorRequestHandler, type Express } from 'express'
 import fs from 'node:fs'
 import {
   OpenApiBuilder,
@@ -13,10 +13,10 @@ import {
 import swaggerUi from 'swagger-ui-express'
 import yaml from 'yaml'
 import { createApi, type FlatRouting, type HttpMethod, type Route } from './create-api'
+import { type ErrorHandler, type Handler } from './create-endpoint'
 import { defaultErrorHandler } from './error-handler'
 import { rescue } from './rescue'
 import { validate } from './validate'
-import { type ErrorHandler, type Handler } from './create-endpoint'
 
 /**
  * OpenAPI definitions for the API object.
@@ -92,7 +92,7 @@ export interface CreateAppParams {
   openApiInfo: OpenApiInfo
   routing: Routing
   app?: Express
-  errorHandler?: ErrorHandler
+  errorHandler?: ErrorRequestHandler
   documentation?:
     | Partial<{
         ui: UIOptions
