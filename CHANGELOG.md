@@ -1,3 +1,22 @@
+# [6.0.0](https://github.com/expresso/router/compare/v5.0.2...v6.0.0) (2024-03-30)
+
+
+### Bug Fixes
+
+* update dependencies ([#15](https://github.com/expresso/router/issues/15)) ([38eb09f](https://github.com/expresso/router/commit/38eb09f485753f1cd9d7c4ed72d9a8761376d069))
+
+
+### BREAKING CHANGES
+
+* this version fixes the open api spec version to 3.1.0 and does not allow the user
+to change it
+
+* ci: update node versions
+
+* fix(test): fix test script
+
+* ci: remove node 16
+
 ## [5.0.2](https://github.com/expresso/router/compare/v5.0.1...v5.0.2) (2022-09-25)
 
 
