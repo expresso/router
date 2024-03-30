@@ -7,9 +7,8 @@ import {
   type ResponseObject,
 } from 'openapi3-ts/oas31'
 import { type z, type ZodObject, type ZodTypeAny } from 'zod'
+import { type ValueOf, type OneOrMore } from '../types'
 
-export type OneOrMore<T> = T | T[]
-export type ValueOf<T> = T[keyof T]
 export interface ResponseDefinition {
   body: ZodTypeAny
   headers?: HeadersObject
