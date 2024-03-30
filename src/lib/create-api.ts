@@ -1,11 +1,20 @@
 import { type Endpoint } from './create-endpoint'
 
+/**
+ * Supported HTTP methods
+ */
 export type HttpMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'head' | 'options' | 'trace'
 
+/**
+ * Route definition
+ */
 export type Route = {
   [k in HttpMethod]?: Endpoint<any, any, any, any>
 }
 
+/**
+ * Flattened routing object, where the key is the path and the value is the route
+ */
 export type FlatRouting = Record<string, Route>
 
 /**
