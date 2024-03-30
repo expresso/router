@@ -1,6 +1,6 @@
-# Expresso Framework
+# Expresso Router
 
-> Self documented, self validated, typescript-first API framework written on top of Express
+> Self documented, self validated, typescript-first router for express
 
 ## Features
 
@@ -16,7 +16,7 @@ Expresso router's main function is the `createEndpoint` function. This function 
 
 When creating an endpoint, you need to describe its input, output and give it at least one handler.
 
-The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
+The `input` property is an object containing a `body`, `params` and / or `query` properties, each being a Zod schema. If your request has no inputs you can omit this property. The corresponding `req` properties will be validated and transformed using these schemas. You can also specify a `headers` property, which should contain a map of `<string, HeaderObject>` according to OpenAPI spefication. **These headers will not be automatically validaded for now**
 
 The `output` property is an object literal having one property for each possible status code for that endpoint. Each status code receives a `body` property, which is the Zod schema describing the body of that response. Optionally, each status code can also have a `headers` property, containing the Response headers for that status code. The `res.status().json()` typing will ensure that you use the correct body for the status you choose.
 
@@ -28,8 +28,7 @@ You can see more about the OpenAPI specification at [https://swagger.io/](https:
 
 ```typescript
 import crypto from 'crypto';
-import { z } from 'zod';
-import { createEndpoint } from '@expresso/router';
+import { createEndpoint, z } from '@expresso/router';
 
 type User = { id: string; name: string; email: string; password: string }
 
@@ -103,6 +102,90 @@ const createUser = createEndpoint({
   ]
 })
 ```
+
+### Zod extension
+
+The router also exports an extension of the Zod lib with an extra method, `openapi`. This method is used to add OpenAPI metadata to the schema, which will be used to generate the swagger documentation. The `openapi` method receives an object with the OpenAPI properties you want to add to the schema.
+
+```typescript
+import crypto from 'crypto';
+import { createEndpoint, z } from '@expresso/router';
+
+type User = { id: string; name: string; email: string; password: string }
+
+const USERS: User[] = []
+
+const createUser = createEndpoint({
+  description: 'If you call this and a user already exists, it will be shit',
+  summary: 'Create a new user',
+  tags: ['Usuários'],
+  input: {
+    body: z.object({
+      name: z.string().min(1).openapi({ description: 'This is the username', example: 'JohnDoe' }),
+      email: z.string().email().min(1),
+      password: z.string().min(16)
+    }),
+    query: z.object({
+      testNumber: z
+        .string()
+        .refine((s) => !Number.isNaN(Number(s)))
+        .transform((n) => parseInt(n, 10))
+        .optional()
+        .openapi({ default: 100 })
+    }),
+    headers: {
+      authorization: {
+        description: 'Authorization token'
+      }
+    }
+  },
+  output: {
+    201: {
+      body: z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        email: z.string().email().min(1)
+      }),
+      headers: {
+        'x-content-range': {
+          description: 'Describes a content range'
+        }
+      }
+    },
+    409: {
+      body: z.object({
+        status: z.literal(409),
+        message: z.string().min(1)
+      })
+    }
+  },
+  handlers: [
+    (_req, _res, next) => {
+      next()
+    },
+    (req, res) => {
+      const { name, email, password } = req.body
+
+      const id = crypto.randomBytes(16).toString('hex')
+
+      USERS.push({
+        id,
+        name,
+        email,
+        password
+      })
+
+      res.status(201).json({
+        id,
+        name,
+        email
+      })
+    }
+  ]
+})
+```
+
+**Note:** All data included in the `openapi` method will not be used for validation, only for documentation purposes.
 
 ### Defining routes
 

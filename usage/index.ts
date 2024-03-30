@@ -1,7 +1,6 @@
 import crypto from 'node:crypto'
-import { z } from 'zod'
 import express from 'express'
-import { createApp, createEndpoint, type OpenApiInfo, type Routing } from '../src'
+import { createApp, createEndpoint, z, type OpenApiInfo, type Routing } from '../src'
 
 interface User {
   id: string
@@ -18,7 +17,7 @@ const createUser = createEndpoint({
   tags: ['Usuários'],
   input: {
     body: z.object({
-      name: z.string().min(1),
+      name: z.string().min(1).openapi({ description: 'The user name', example: 'JohnDoe' }),
       email: z.string().email().min(1),
       password: z.string().min(16),
     }),
@@ -27,7 +26,8 @@ const createUser = createEndpoint({
         .string()
         .refine((s) => !Number.isNaN(Number(s)))
         .transform((n) => parseInt(n, 10))
-        .optional(),
+        .optional()
+        .openapi({ default: 100 }),
     }),
     headers: {
       authorization: {
