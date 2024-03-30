@@ -20,7 +20,8 @@
     "lint:fix": "npm run lint -- --fix",
     "dev": "tsx usage",
     "prepack": "npm run build:clean",
-    "push": "git push && sleep 2 && gh api repos/\\{owner\\}/\\{repo\\}/actions/runs?per_page=1 | jq '.workflow_runs[0].id' | xargs gh run watch"
+    "push": "git push && sleep 2 && gh api repos/\\{owner\\}/\\{repo\\}/actions/runs?per_page=1 | jq '.workflow_runs[0].id' | xargs gh run watch",
+    "prepare": "husky"
   },
   "repository": "github:expresso/router",
   "author": "Roz <roz@rjmunhoz.me>",
