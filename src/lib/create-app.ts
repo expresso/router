@@ -134,7 +134,8 @@ export function createApp(config: CreateAppParams) {
   // Apply user routes
   for (const [path, methods] of Object.entries(wrappedRoutes)) {
     for (const [method, endpoint] of Object.entries(methods)) {
-      app[method as HttpMethod](path, endpoint.handlers)
+      const handlers = Array.isArray(endpoint.handlers) ? endpoint.handlers : [endpoint.handlers]
+      app[method as HttpMethod](path, ...handlers)
     }
   }
 

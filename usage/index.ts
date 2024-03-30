@@ -111,7 +111,7 @@ const login = createEndpoint({
     if (!user) {
       res.status(401).json({
         status: 401,
-        message: 'Usuário não encontrado',
+        message: 'User not found',
       })
       return
     }
@@ -208,5 +208,5 @@ createApp({
     },
   },
 }).listen(3000, () => {
-  console.log('batata')
+  console.log('Server running')
 })

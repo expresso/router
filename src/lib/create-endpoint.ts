@@ -19,18 +19,14 @@ export type InferBodyValues<T extends ResponseMap> = {
   [k in keyof T]: z.infer<T[k]['body']>
 }
 
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void ? I : never
-
 export type Handler<RequestBody, Params, Query, ResponseBody extends ResponseMap> = (
   req: Express.Request<Params, ResponseBody, RequestBody, Query>,
-  res: Express.Response<ValueOf<InferBodyValues<ResponseBody>>> & {
-    [k in keyof ResponseBody as 'status']: UnionToIntersection<
-      k extends number
-        ? (status: k) => {
-            json: (body: z.output<ResponseBody[k]['body']>) => any
-          }
-        : never
-    >
+  res: Omit<Express.Response<ValueOf<InferBodyValues<ResponseBody>>>, 'status'> & {
+    status: <const T extends number>(
+      status: T extends keyof ResponseBody ? T : never,
+    ) => {
+      json: (body: z.output<ResponseBody[typeof status]['body']>) => any
+    }
   },
   next: Express.NextFunction,
 ) => any
