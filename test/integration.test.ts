@@ -2,18 +2,17 @@ import fs from 'node:fs'
 const fsMock = sinon.stub(fs, 'writeFileSync')
 
 import axiosist from 'axiosist'
-import { strictEqual } from 'node:assert'
+import { notStrictEqual, strictEqual } from 'node:assert'
 import { assert } from 'node:console'
 import { after, before, describe, it } from 'node:test'
 import { createApp, createEndpoint, z } from '../src'
 import sinon from 'sinon'
 
-const noop = () => {}
-
 describe('create-app', () => {
   after(() => {
     sinon.restore()
   })
+
   it('should create an express app', () => {
     const app = createApp({
       openApiInfo: {
@@ -133,7 +132,7 @@ describe('create-app', () => {
       },
     })
 
-    expressApp.use((err, req, res, next) => {
+    expressApp.use((_err, _req, res, _next) => {
       res.status(500).end()
     })
 
@@ -268,6 +267,117 @@ describe('create-app', () => {
 
     it('should save the documentation', async () => {
       assert(fsMock.calledOnceWith('docs.json', sinon.match.string))
+    })
+  })
+
+  describe('local error handlers', () => {
+    const app = axiosist(
+      createApp({
+        openApiInfo: {
+          info: {
+            title: 'Test',
+            version: '1.0.0',
+          },
+        },
+        routing: {
+          '/foo': {
+            get: createEndpoint({
+              handlers: [
+                async () => {
+                  throw new Error('Error message here')
+                },
+              ],
+              errorHandler: (err: any, _req, res, next) => {
+                if (!err) return next()
+                res.status(500).json({ error: err.message })
+              },
+              output: {
+                500: {
+                  body: z.object({
+                    error: z.string(),
+                  }),
+                },
+              },
+            }),
+            post: createEndpoint({
+              handlers: (_, __, next) => {
+                throw new Error('This should not be caught and will output in the test')
+              },
+              output: {
+                200: {
+                  body: z.object({ ok: z.literal(true) }),
+                },
+              },
+            }),
+          },
+        },
+      }),
+    )
+
+    it('should use the local error handler', async () => {
+      const response = await app.get('/foo')
+
+      strictEqual(response.status, 500)
+      strictEqual(response.data.error, 'Error message here')
+    })
+
+    it('should only apply the local error handler to the specific route', async () => {
+      const response = await app.get('/foo')
+      strictEqual(response.status, 500)
+      strictEqual(response.data.error, 'Error message here')
+
+      const response2 = await app.post('/foo')
+      strictEqual(response2.status, 500) // This is automatically caught by express
+      notStrictEqual(response2.data, 'This should not be caught and will be output in the test') // This response is an HTML page
+    })
+  })
+
+  describe('global error handlers', () => {
+    const app = axiosist(
+      createApp({
+        openApiInfo: {
+          info: {
+            title: 'Test',
+            version: '1.0.0',
+          },
+        },
+        routing: {
+          '/foo': {
+            get: createEndpoint({
+              handlers: [
+                async () => {
+                  throw new Error('Error from get')
+                },
+              ],
+              output: {},
+            }),
+            post: createEndpoint({
+              handlers: [
+                async () => {
+                  throw new Error('Error from post')
+                },
+              ],
+              output: {},
+            }),
+          },
+        },
+        errorHandler: (err: any, _req, res, next) => {
+          if (!err) return next()
+          res.status(500).json({ error: err.message })
+        },
+      }),
+    )
+
+    it('should apply the error handler to all routes', async () => {
+      const resGet = await app.get('/foo')
+
+      strictEqual(resGet.status, 500)
+      strictEqual(resGet.data.error, 'Error from get')
+
+      const resPost = await app.post('/foo')
+
+      strictEqual(resPost.status, 500)
+      strictEqual(resPost.data.error, 'Error from post')
     })
   })
 })
