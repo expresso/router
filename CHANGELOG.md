@@ -1,3 +1,10 @@
+# [6.2.0](https://github.com/expresso/router/compare/v6.1.0...v6.2.0) (2024-03-30)
+
+
+### Features
+
+* force release ([8c4805e](https://github.com/expresso/router/commit/8c4805e3dafd698ba7f51027dbd53cf729832a0e))
+
 # [6.1.0](https://github.com/expresso/router/compare/v6.0.0...v6.1.0) (2024-03-30)
 
 
