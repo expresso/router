@@ -1,3 +1,10 @@
+# [6.3.0](https://github.com/expresso/router/compare/v6.2.0...v6.3.0) (2024-03-30)
+
+
+### Features
+
+* Add error handlers ([#23](https://github.com/expresso/router/issues/23)) ([ef423c8](https://github.com/expresso/router/commit/ef423c8924c87871e99a4adad96f23fe8b55f825))
+
 # [6.2.0](https://github.com/expresso/router/compare/v6.1.0...v6.2.0) (2024-03-30)
 
 
