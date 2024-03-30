@@ -1,23 +1,24 @@
-import { describe, it } from 'node:test'
+import { describe, it, mock } from 'node:test'
 import { Routing, z } from '../src'
 import { flattenRoutes, wrapWithRescueAndValidation } from '../src/lib/create-app'
 import { deepStrictEqual, strictEqual } from 'node:assert'
 
 describe('create-app', () => {
+  const noop = mock.fn()
   describe('flattenRoutes', () => {
     it('should flatten nested routes', () => {
       const routes: Routing = {
         '/users': {
           '/me': {
             get: {
-              handlers: [],
+              handlers: [noop],
               output: {},
             },
           },
         },
         '/ping': {
           get: {
-            handlers: [],
+            handlers: [noop],
             output: {},
           },
         },
@@ -26,13 +27,13 @@ describe('create-app', () => {
       deepStrictEqual(result, {
         '/users/me': {
           get: {
-            handlers: [],
+            handlers: [noop],
             output: {},
           },
         },
         '/ping': {
           get: {
-            handlers: [],
+            handlers: [noop],
             output: {},
           },
         },
