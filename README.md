@@ -2,9 +2,24 @@
 
 > Self documented, self validated, typescript-first router for express
 
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+
+<!-- code_chunk_output -->
+
+- [Expresso Router](#expresso-router)
+  - [Features](#features)
+  - [Usage](#usage)
+    - [Defining an endpoint](#defining-an-endpoint)
+    - [Zod extension](#zod-extension)
+    - [Defining routes](#defining-routes)
+    - [Putting everything together](#putting-everything-together)
+
+<!-- /code_chunk_output -->
+
 ## Features
 
 - Automatic input validation with [Zod](https://www.npmjs.com/package/zod)
+- Automatic OpenAPI extension with Zod
 - Type safe input and output
 - Auto generated documentation
 
@@ -106,6 +121,8 @@ const createUser = createEndpoint({
 ### Zod extension
 
 The router also exports an extension of the Zod lib with an extra method, `openapi`. This method is used to add OpenAPI metadata to the schema, which will be used to generate the swagger documentation. The `openapi` method receives an object with the OpenAPI properties you want to add to the schema.
+
+This feature uses the underlying `extendZodWithOpenApi` function from the [@anatine/zod-openapi](https://www.npmjs.com/package/@anatine/zod-openapi) package. If you want to import your own Zod function, this is also possible, just make sure to use the `extendZodWithOpenApi` function from the same package.
 
 ```typescript
 import crypto from 'crypto';
