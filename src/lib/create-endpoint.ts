@@ -30,6 +30,19 @@ export type Handler<RequestBody, Params, Query, ResponseBody extends ResponseMap
   next: Express.NextFunction,
 ) => any
 
+export type ErrorHandler<RequestBody, Params, Query, ResponseBody extends ResponseMap> = (
+  err: unknown,
+  req: Express.Request<Params, ResponseBody, RequestBody, Query>,
+  res: Omit<Express.Response<ValueOf<InferBodyValues<ResponseBody>>>, 'status'> & {
+    status: <const T extends number>(
+      status: T extends keyof ResponseBody ? T : never,
+    ) => {
+      json: (body: z.output<ResponseBody[typeof status]['body']>) => any
+    }
+  },
+  next: Express.NextFunction,
+) => any
+
 export type Endpoint<
   RequestBody = any,
   Params = any,

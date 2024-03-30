@@ -41,7 +41,7 @@ export type Routing = FlatRouting | Record<string, FlatRouting | Route>
 
 export interface CreateAppParams {
   openApiInfo: OpenApiInfo
-  routing: FlatRouting
+  routing: Routing
   app?: Express
   documentation?:
     | Partial<{
@@ -112,6 +112,12 @@ export function wrapWithRescueAndValidation<T extends FlatRouting>(routing: T) {
   )
 }
 
+function createExpressApp() {
+  const app = express()
+  app.use(express.json())
+  return app
+}
+
 /**
  * Creates an express app with the given routing and openapi info.
  * @param config Info and options
@@ -123,7 +129,7 @@ export function wrapWithRescueAndValidation<T extends FlatRouting>(routing: T) {
  * @returns Express app
  */
 export function createApp(config: CreateAppParams) {
-  const { openApiInfo, routing, app = express(), documentation } = config
+  const { openApiInfo, routing, app = createExpressApp(), documentation } = config
 
   const wrappedRoutes: FlatRouting = wrapWithRescueAndValidation(routing)
 
