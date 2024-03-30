@@ -1,10 +1,14 @@
-import expresso from '@expresso/app'
-import server from '@expresso/server'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import { z } from 'zod'
-import { createApp, createEndpoint, OpenApiInfo, Routing } from '../src'
+import express from 'express'
+import { createApp, createEndpoint, type OpenApiInfo, type Routing } from '../src'
 
-type User = { id: string; name: string; email: string; password: string }
+interface User {
+  id: string
+  name: string
+  email: string
+  password: string
+}
 
 const USERS: User[] = []
 
@@ -16,40 +20,40 @@ const createUser = createEndpoint({
     body: z.object({
       name: z.string().min(1),
       email: z.string().email().min(1),
-      password: z.string().min(16)
+      password: z.string().min(16),
     }),
     query: z.object({
       testNumber: z
         .string()
         .refine((s) => !Number.isNaN(Number(s)))
         .transform((n) => parseInt(n, 10))
-        .optional()
+        .optional(),
     }),
     headers: {
       authorization: {
-        description: 'Authorization token'
-      }
-    }
+        description: 'Authorization token',
+      },
+    },
   },
   output: {
     201: {
       body: z.object({
         id: z.string().min(1),
         name: z.string().min(1),
-        email: z.string().email().min(1)
+        email: z.string().email().min(1),
       }),
       headers: {
         'x-content-range': {
-          description: 'Describes a content range'
-        }
-      }
+          description: 'Describes a content range',
+        },
+      },
     },
     409: {
       body: z.object({
         status: z.literal(409),
-        message: z.string().min(1)
-      })
-    }
+        message: z.string().min(1),
+      }),
+    },
   },
   handlers: [
     (_req, _res, next) => {
@@ -64,41 +68,40 @@ const createUser = createEndpoint({
         id,
         name,
         email,
-        password
+        password,
       })
 
       res.status(201).json({
         id,
         name,
-        email
+        email,
       })
-    }
-  ]
+    },
+  ],
 })
 
 const login = createEndpoint({
   summary: 'Get a new access token',
-  description:
-    'Validates user and password and returns a new token if everything is correct',
+  description: 'Validates user and password and returns a new token if everything is correct',
   tags: ['Usuários'],
   input: {
     body: z.object({
       email: z.string().email().min(1),
-      password: z.string().min(16)
-    })
+      password: z.string().min(16),
+    }),
   },
   output: {
     200: {
       body: z.object({
-        token: z.string().min(1)
-      })
+        token: z.string().min(1),
+      }),
     },
     401: {
       body: z.object({
         status: z.literal(401),
-        message: z.string().min(1)
-      })
-    }
+        message: z.string().min(1),
+      }),
+    },
   },
   handlers: (req, res) => {
     const { email, password } = req.body
@@ -108,15 +111,15 @@ const login = createEndpoint({
     if (!user) {
       res.status(401).json({
         status: 401,
-        message: 'Usuário não encontrado'
+        message: 'Usuário não encontrado',
       })
       return
     }
 
     res.status(200).json({
-      token: 'token'
+      token: 'token',
     })
-  }
+  },
 })
 
 const dummy = createEndpoint({
@@ -124,30 +127,30 @@ const dummy = createEndpoint({
   input: {
     body: z.object({
       parent: z.object({
-        child: z.string()
-      })
-    })
+        child: z.string(),
+      }),
+    }),
   },
   output: {
     200: {
-      body: z.object({ ok: z.boolean() })
-    }
+      body: z.object({ ok: z.boolean() }),
+    },
   },
   handlers: (_req, res, _next) => {
     res.status(200).json({ ok: true })
-  }
+  },
 })
 
 const routing: Routing = {
   '/users': {
-    post: createUser
+    post: createUser,
   },
   '/login': {
-    post: login
+    post: login,
   },
   '/dummy': {
-    post: dummy
-  }
+    post: dummy,
+  },
 }
 
 const openApiInfo: OpenApiInfo = {
@@ -157,10 +160,9 @@ const openApiInfo: OpenApiInfo = {
     contact: { email: 'roz@rjmunhoz.me' },
     license: {
       name: 'GPL 3.0',
-      url: 'https://www.gnu.org/licenses/gpl-3.0.txt'
-    }
+      url: 'https://www.gnu.org/licenses/gpl-3.0.txt',
+    },
   },
-  openapi: '3.0.1',
   servers: [
     {
       url: '{protocol}://{host}:{port}',
@@ -168,28 +170,28 @@ const openApiInfo: OpenApiInfo = {
       variables: {
         host: { default: 'localhost' },
         protocol: { enum: ['http', 'https'], default: 'http' },
-        port: { default: '3000' }
-      }
-    }
-  ]
+        port: { default: '3000' },
+      },
+    },
+  ],
 }
 
-const appFactory = expresso((app) =>
-  createApp({
-    openApiInfo,
-    routing,
-    app,
-    documentation: {
-      ui: {
-        endpoint: '/docs'
-      },
-      json: true,
-      yaml: true,
-      fs: {
-        path: './docs.yaml',
-        format: 'yaml'
-      }
-    }
-  })
-)
-server.start(appFactory, { name: 'Test API' })
+const app = express()
+createApp({
+  openApiInfo,
+  routing,
+  app,
+  documentation: {
+    ui: {
+      endpoint: '/docs',
+    },
+    json: true,
+    yaml: true,
+    fs: {
+      path: './docs.yaml',
+      format: 'json',
+    },
+  },
+}).listen(3000, () => {
+  console.log('batata')
+})

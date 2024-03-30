@@ -1,21 +1,29 @@
 module.exports = {
   env: {
     es2021: true,
-    node: true
+    node: true,
   },
-  extends: [
-    'standard',
-    'prettier'
+  extends: ['standard-with-typescript', 'plugin:prettier/recommended'],
+  plugins: ['prettier'],
+  overrides: [
+    {
+      env: {
+        node: true,
+      },
+      files: ['.eslintrc.{js,cjs}'],
+      parserOptions: {
+        sourceType: 'script',
+      },
+    },
   ],
-  parser: '@typescript-eslint/parser',
+
   parserOptions: {
-    ecmaVersion: 12,
-    sourceType: 'module'
+    ecmaVersion: 'latest',
+    sourceType: 'module',
   },
-  plugins: [
-    '@typescript-eslint'
-  ],
   rules: {
-    'no-unused-vars': 'off'
-  }
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off',
+  },
+  ignorePatterns: ['.eslintrc.js'],
 }

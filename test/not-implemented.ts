@@ -1,3 +1,4 @@
-describe('not implemented', () => {
-  it('shall pass', () => { })
+import {describe, it} from 'node:test'
+
+describe('expresso/router', {todo: true}, () => {
 })
