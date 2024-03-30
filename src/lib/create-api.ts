@@ -6,7 +6,7 @@ export type Route = {
   [k in HttpMethod]?: Endpoint<any, any, any, any>
 }
 
-export type Routing = Record<string, Route>
+export type FlatRouting = Record<string, Route>
 
 /**
  * Removes handlers and spreads endpoint from a route
@@ -33,7 +33,7 @@ const convertPath = (path: string) => path.replace(/:([^/]+)/g, '{$1}')
  * @param routing Route definitions
  * @returns OpenApi paths
  */
-export const createApi = (routing: Routing) => {
+export const createApi = (routing: FlatRouting) => {
   return Object.fromEntries(
     Object.entries(routing).map(([path, route]) => {
       const finalPath = path.includes(':') ? convertPath(path) : path

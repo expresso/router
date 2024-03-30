@@ -12,7 +12,9 @@
     - [Defining an endpoint](#defining-an-endpoint)
     - [Zod extension](#zod-extension)
     - [Defining routes](#defining-routes)
-    - [Putting everything together](#putting-everything-together)
+      - [Simple routes](#simple-routes)
+      - [Nested (prefixed) routes](#nested-prefixed-routes)
+  - [Putting everything together](#putting-everything-together)
 
 <!-- /code_chunk_output -->
 
@@ -206,6 +208,8 @@ const createUser = createEndpoint({
 
 ### Defining routes
 
+#### Simple routes
+
 The routing object has the paths at its main level, with each path having properties for the HTTP methods they handle. The `Routing` type defines a routing object:
 
 ```typescript
@@ -219,7 +223,33 @@ export const routing: Routing = {
 };
 ```
 
-### Putting everything together
+#### Nested (prefixed) routes
+
+You can also nest routes by creating a new `Routing` object inside the parent route. This is useful for grouping routes that share a common prefix.
+
+```typescript
+import { createUser, updateUser, deleteUser } from './endpoints/create-user.ts';
+import { getMe } from './endpoints/me.ts';
+import { Routing } from '@expresso/router';
+
+export const routing: Routing = {
+  '/users': {
+    '/': {
+      post: createUser,
+    },
+    '/:id': {
+      get: getUser,
+      put: updateUser,
+      delete: deleteUser,
+    },
+  },
+  '/me': {
+    get: getMe,
+  }
+};
+```
+
+## Putting everything together
 
 Now that you have your endpoints and routes, it's time to create the app. The `createApp` function runs an `express` server equipped with the routes and endpoints, plus a `GET /docs` endpoint which renders the swagger UI documentation.
 
