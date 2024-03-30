@@ -6,8 +6,8 @@ import {
   type ParameterLocation,
   type ResponseObject,
 } from 'openapi3-ts/oas31'
-import { type z, type ZodObject, type ZodTypeAny } from 'zod'
-import { type ValueOf, type OneOrMore } from '../types'
+import { type ZodObject, type ZodTypeAny, type z } from 'zod'
+import { type OneOrMore, type ValueOf } from '../types'
 
 export interface ResponseDefinition {
   body: ZodTypeAny
