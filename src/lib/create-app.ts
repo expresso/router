@@ -18,6 +18,9 @@ import { errorHandler } from './error-handler'
 import { rescue } from './rescue'
 import { validate } from './validate'
 
+/**
+ * OpenAPI definitions for the API object.
+ */
 export interface OpenApiInfo {
   info: InfoObject
   servers?: ServerObject[]
@@ -37,6 +40,44 @@ interface FSOptions {
   format: 'json' | 'yaml'
 }
 
+/**
+ * Routing is a tree-like structure that defines the API routes.
+ * It can be flat or nested. Which means you can have a single route definition
+ * using the path as the key and the route definition as the value
+ * or you can nest routes by using an object where the key is the prefix
+ * and the value is another routing object with the path as the key and the route
+ * as the value
+ *
+ * This structure only supports a single level of nesting.
+ *
+ * @example
+ * ```ts
+ * const routing = {
+ *   '/ping': {
+ *     get: {
+ *       handlers: [],
+ *       output: {
+ *         200: {
+ *           body: <your schema here>,
+ *         },
+ *       },
+ *     },
+ *   },
+ *   '/users': {
+ *     '/me': {
+ *       get: {
+ *         handlers: [],
+ *         output: {
+ *           200: {
+ *             body: <your schema here>,
+ *           },
+ *         },
+ *       },
+ *     },
+ *   },
+ * }
+ * ```
+ */
 export type Routing = FlatRouting | Record<string, FlatRouting | Route>
 
 export interface CreateAppParams {
