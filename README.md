@@ -2,23 +2,33 @@
 
 > Self documented, self validated, typescript-first router for express
 
+## Summary
+
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 <!-- code_chunk_output -->
 
 - [Expresso Router](#expresso-router)
+  - [Summary](#summary)
+  - [What is it?](#what-is-it)
   - [Features](#features)
   - [Usage](#usage)
     - [Defining an endpoint](#defining-an-endpoint)
       - [Endpoint error handling](#endpoint-error-handling)
-      - [Global Error Handling](#global-error-handling)
     - [Zod extension](#zod-extension)
     - [Defining routes](#defining-routes)
       - [Simple routes](#simple-routes)
       - [Nested (prefixed) routes](#nested-prefixed-routes)
   - [Putting everything together](#putting-everything-together)
+    - [Global Error Handling](#global-error-handling)
 
 <!-- /code_chunk_output -->
+
+## What is it?
+
+Allows you to define your routes and endpoints in a typescript-first way, with automatic input validation and OpenAPI documentation generation.
+
+Returns an express app with the routes and endpoints defined, plus a swagger UI documentation endpoint. This app can be later extended with more routes, middlewares, error middlewares or started with `app.listen()`.
 
 ## Features
 
@@ -28,6 +38,12 @@
 - Auto generated documentation
 
 ## Usage
+
+Install the package:
+
+```bash
+npm install @expresso/router
+```
 
 ### Defining an endpoint
 
@@ -137,48 +153,7 @@ type User = { id: string; name: string; email: string; password: string }
 const USERS: User[] = []
 
 const createUser = createEndpoint({
-  description: 'If you call this and a user already exists, it will be shit',
-  summary: 'Create a new user',
-  tags: ['Usuários'],
-  input: {
-    body: z.object({
-      name: z.string().min(1),
-      email: z.string().email().min(1),
-      password: z.string().min(16)
-    }),
-    query: z.object({
-      testNumber: z
-        .string()
-        .refine((s) => !Number.isNaN(Number(s)))
-        .transform((n) => parseInt(n, 10))
-        .optional()
-    }),
-    headers: {
-      authorization: {
-        description: 'Authorization token'
-      }
-    }
-  },
-  output: {
-    201: {
-      body: z.object({
-        id: z.string().min(1),
-        name: z.string().min(1),
-        email: z.string().email().min(1)
-      }),
-      headers: {
-        'x-content-range': {
-          description: 'Describes a content range'
-        }
-      }
-    },
-    409: {
-      body: z.object({
-        status: z.literal(409),
-        message: z.string().min(1)
-      })
-    }
-  },
+  // ... All the previous openapi properties
   handlers: [
     (_req, _res, next) => {
       next()
@@ -189,9 +164,7 @@ const createUser = createEndpoint({
         next(new UserError('Email already exists'))
         return
       }
-
       const id = crypto.randomBytes(16).toString('hex')
-
       USERS.push({
         id,
         name,
@@ -218,27 +191,6 @@ const createUser = createEndpoint({
 ```
 
 **Note**: The error handler passed to this property will only be available to this particular endpoint, if you want to create a global error handler, you can either use the `app.use` function **after** the `createApp` function, or you can refer to the [global error handling](#global-error-handling) section.
-
-#### Global Error Handling
-
-You can also pass a global error handler to the `createApp` function. This function is an Express error handling middleware with the signature `(err: any, req: Request, res: Response, next: NextFunction) => void`.
-
-This error handler is optional and **will be applied to all the routes in the API**. If you pass it, the handler will be called using `app.use` after the routes are added to the app.
-
-If this property is omitted, the default error handler will be used, this error handler is defined in [this file](./src/lib/error-handler.ts) and has the following signature:
-
-```ts
-export const errorHandler = (err: any, _req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof ZodError) {
-    return res.status(422).json({
-      message: 'Validation error. See `details` property',
-      details: err.issues,
-    })
-  }
-
-  next(err)
-}
-```
 
 It will only return a 422 status code with the validation issues if the error is an instance of `ZodError` (which means it will only capture validation errors), otherwise it will call `next(err)` allowing you to chain more handlers in the end of the middleware chain.
 
@@ -381,7 +333,7 @@ The result is an express app which you can use just like any other express app, 
 
 You can specify your own app by passing a custom `app` property to the `createApp` options object. This is useful if you want to use your own express middlewares, or if you want to use a different version of express.
 
-The documentation can be customized via the `documentation` property, which accepts four optional properties, each one describing one manner of exposing documentation:
+The documentation can be customized via the `documentation` optional property, which accepts four optional properties, each one describing one manner of exposing documentation:
 
 - `ui` (object): Generates the swagger UI documentation
   - `endpoint` (string): Endpoint through which swaggerUI will be available
@@ -391,6 +343,8 @@ The documentation can be customized via the `documentation` property, which acce
 - `fs` (object): Saves the specification as a file in the given path
   - `path` (string): Path where the file should be saved (with file extension)
   - `format` (`'json'` | `'yaml'`): Specifies the format of the generated document
+
+If `documentation` is `false` or omitted, no documentation will be generated.
 
 ```typescript
 import { routing } from './routing.ts'
@@ -420,4 +374,63 @@ const app = createApp({
 app.listen(3000, () => {
   console.log('Listening on 3000')
 })
+```
+
+### Global Error Handling
+
+You can also pass a global error handler to the `createApp` function. This function is an Express error handling middleware with the signature `(err: any, req: Request, res: Response, next: NextFunction) => void`.
+
+This error handler is optional and **will be applied to all the routes in the API**. If you pass it, the handler will be called using `app.use` after the routes are added to the app.
+
+```typescript
+import { routing } from './routing.ts'
+import { createApp, OpenApiInfo } from '../src'
+
+const openApiInfo: OpenApiInfo = {
+  info: {
+    title: 'Test API',
+    version: '1.0.0'
+  },
+  openapi: '3.0.1',
+  servers: [{ url: 'http://localhost:3000' }]
+}
+
+const app = createApp({
+  openApiInfo,
+  routing,
+  errorHandler: (err, _req, res) => {
+    if (err instanceof UserError) {
+      return res.status(409).json({
+        status: 409,
+        message: err.message
+      })
+    }
+  },
+  documentation: {
+    json: true,
+    fs: {
+      path: './docs/swagger.json',
+      format: 'json'
+    }
+  }
+})
+
+app.listen(3000, () => {
+  console.log('Listening on 3000')
+})
+```
+
+If this property is omitted, the default error handler will be used, this error handler is defined in [this file](./src/lib/error-handler.ts) and has the following signature:
+
+```ts
+export const errorHandler = (err: any, _req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof ZodError) {
+    return res.status(422).json({
+      message: 'Validation error. See `details` property',
+      details: err.issues,
+    })
+  }
+
+  next(err)
+}
 ```
