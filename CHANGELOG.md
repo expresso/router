@@ -1,3 +1,16 @@
+# [7.0.0](https://github.com/expresso/router/compare/v6.3.0...v7.0.0) (2024-03-31)
+
+
+### Bug Fixes
+
+* **output:** don't allow empty outputs ([25dc301](https://github.com/expresso/router/commit/25dc3018df0944d3d7c0ccf2d70bbbebee40515c))
+
+
+### BREAKING CHANGES
+
+* **output:** Any empty outputs will now fail type check. Any endpoints MUST now have at least
+one key in the output object
+
 # [6.3.0](https://github.com/expresso/router/compare/v6.2.0...v6.3.0) (2024-03-30)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@expresso/router",
-  "version": "6.3.0",
+  "version": "7.0.0",
   "main": "dist/index.js",
   "description": "@expresso framework library",
   "engines": {
