@@ -1,3 +1,5 @@
+## [7.0.1](https://github.com/expresso/router/compare/v7.0.0...v7.0.1) (2024-03-31)
+
 # [7.0.0](https://github.com/expresso/router/compare/v6.3.0...v7.0.0) (2024-03-31)
 
 
